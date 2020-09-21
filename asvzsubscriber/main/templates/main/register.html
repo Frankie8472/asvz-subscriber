@@ -1,0 +1,12 @@
+{% extends 'main/header.html' %}
+
+{% block content %}
+    <h5 style="color:red">Please use your NETHZ login! &emsp; Without it the Tool will not work...</h5>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn" type="submit">Register</button>
+    </form>
+
+    If you already have an account <a href="/login" target="blank"><strong>login</strong></a> instead.
+{% endblock %}
