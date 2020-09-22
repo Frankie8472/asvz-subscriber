@@ -13,4 +13,3 @@ class EventForm(forms.Form):
 
     def set_choices(self, events):
         self.fields['Events'].choices = events
-
