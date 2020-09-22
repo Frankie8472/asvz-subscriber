@@ -1,9 +1,11 @@
 {% extends 'main/header.html' %}
 
 {% block content %}
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn" type="submit">Update</button>
-    </form>
+    <div class="container">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn" type="submit">Update</button>
+        </form>
+    </div>
 {% endblock %}
