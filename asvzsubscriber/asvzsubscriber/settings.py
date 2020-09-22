@@ -38,6 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
+    'django_crontab',
+]
+
+CRONJOBS = [
+    ('3-59/5 * * * *', 'asvzsubscriber.cron.check_time')
 ]
 
 MIDDLEWARE = [

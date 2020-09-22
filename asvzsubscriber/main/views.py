@@ -1,6 +1,5 @@
 import pytz
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
@@ -14,9 +13,8 @@ from cryptography.fernet import Fernet
 from .forms import EventForm
 from .models import ASVZEvent
 
+
 # Create your views here.
-
-
 def home(request):
     if not request.user.is_authenticated:
         return redirect('main:login')
@@ -94,7 +92,7 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            with open('../bot/key.lock', 'r') as key_file:
+            with open('../key.lock', 'r') as key_file:
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
             user.first_name = f.encrypt(bytes(form.cleaned_data.get('password1'), 'utf-8')).decode('utf-8')
@@ -163,7 +161,7 @@ def account(request):
         if form.is_valid():
             form.save()
             user = request.user
-            with open('../bot/key.lock', 'r') as key_file:
+            with open('../key.lock', 'r') as key_file:
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
             user.first_name = f.encrypt(bytes(form.cleaned_data.get('new_password1'), 'utf-8')).decode('utf-8')
