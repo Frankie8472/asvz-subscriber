@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 
 import urllib.request
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from cryptography.fernet import Fernet
 
 from .forms import EventForm
@@ -23,10 +23,7 @@ def home(request):
     events_scheduled = [event for event in ASVZEvent.objects.filter(user=user)]
     events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
 
-    url = 'https://asvz.ch/asvz_api/event_search?_format=json&limit=10'
-
-    with urllib.request.urlopen(url) as url:
-        data = json.loads(url.read().decode())
+    data = update_url()
 
     events = [(
         event['url'],
@@ -180,3 +177,38 @@ def account(request):
         'main/account.html',
         {'form': form}
     )
+
+
+def update_url(limit=50, time=None, sauna=True):
+    if time is None:
+        time = str(datetime.now(pytz.timezone('Europe/Zurich')) + timedelta(days=1))[:-16]
+
+    if sauna:
+        asvz_sport_center = 109
+        sport_center_hoenggerberg = 45598
+        specials = 80587
+        url = f"https://asvz.ch/asvz_api/event_search?_format=json&limit={limit}&date={time[:10]}%20{time[11:]}&f[0]=facility_type:{asvz_sport_center}&f[1]=facility:{sport_center_hoenggerberg}&f[2]=sport:{specials}&selected=date:f0:f1:f2"
+
+    else:
+        url = f'https://asvz.ch/asvz_api/event_search?_format=json&limit={limit}&date={time[:10]}%20{time[11:]}&selected=date'
+
+    with urllib.request.urlopen(url) as url:
+        data = json.loads(url.read().decode())
+
+    if False:
+        events_to_be_removed = []
+        for event in data['results']:
+            current_time = datetime.now(pytz.timezone('Europe/Zurich'))
+            registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich'))
+            time_delta = (registration_start - current_time).total_seconds()
+            if time_delta < 0.0:
+                events_to_be_removed.append(event)
+        for event in events_to_be_removed:
+            data['results'].remove(event)
+    if sauna:
+        events_to_be_kept = []
+        for event in data['results']:
+            if event['title'] == "Wellness-Zone":
+                events_to_be_kept.append(event)
+        data['results'] = events_to_be_kept
+    return data
