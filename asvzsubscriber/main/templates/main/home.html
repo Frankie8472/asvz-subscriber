@@ -1,12 +1,30 @@
 {% extends 'main/header.html' %}
 
 {% block content %}
-    <ul>
-    {% for result in data.results %}
-        <li><b>{{ result.sport_name }}</b> {{ result.title }} {{ result.from_date}} {{ result.location}}</li>
-    {% empty %}
-        <li>Sorry, no asvz events found.</li>
-    {% endfor %}
-    </ul>
+    <br>
+    <div class="row">
+        <div class="col s6">
+            <label>
+            <input type="checkbox"/>
+            </label>
+            <form method='post'>
+                <button type="submit" class="btn btn-success" name="schedule" value="schedule">Schedule Selected Events</button>
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success" name="schedule" value="schedule">Schedule Selected Events</button>
+            </form>
+        </div>
+        <div class="col s6">
+            <label>
+            <input type="checkbox"/>
+            </label>
+            <form method='POST'>
+                <button type="submit" class="btn btn-success" name="deschedule" value="deschedule">Deschedule Selected Events</button>
+                {% csrf_token %}
+                {{ form_scheduled.as_p }}
+                <button type="submit" class="btn btn-success" name="deschedule" value="deschedule">Deschedule Selected Events</button>
+            </form>
+        </div>
+    </div>
 
 {% endblock %}

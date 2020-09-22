@@ -1,27 +1,87 @@
+import pytz
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.utils.safestring import mark_safe
 
 import urllib.request
 import json
+from datetime import datetime, timezone
+from cryptography.fernet import Fernet
 
+from .forms import EventForm
+from .models import ASVZEvent
 
 # Create your views here.
+
+
 def home(request):
     if not request.user.is_authenticated:
         return redirect('main:login')
 
-    url = 'https://asvz.ch/asvz_api/event_search?_format=json&limit=60'
+    user = request.user
+    events_scheduled = [event for event in ASVZEvent.objects.filter(user=user)]
+    events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
+
+    url = 'https://asvz.ch/asvz_api/event_search?_format=json&limit=10'
 
     with urllib.request.urlopen(url) as url:
         data = json.loads(url.read().decode())
-        print(data['results'][0]['title'])
+
+    events = [(
+        event['url'],
+        mark_safe(f"<span>{str(datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')))[5:-9]} | {event['sport_name']} | {event['title']} | {event['location']}</span>")
+    ) for event in data['results'] if event['url'] not in events_scheduled_url]
+
+    events_scheduled_mod = [(
+        event.url,
+        mark_safe(f"<span>{str(event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')))[5:-9]} | {event.sport_name} | {event.title} | {event.location}</span>")
+    ) for event in events_scheduled]
+
+    if request.method == 'POST':
+        if 'schedule' in request.POST:
+            form = EventForm(request.POST)
+            form.set_choices(events=events)
+
+            if form.is_valid():
+                for selected_event in form.cleaned_data['Events']:
+                    for event in data['results']:
+                        if selected_event == event['url']:
+                            ASVZEvent.objects.create(
+                                user=user,
+                                sport_name=event['sport_name'],
+                                title=event['title'],
+                                location=event['location'],
+                                event_start_date=event['from_date'],
+                                register_start_date=event['oe_from_date'],
+                                url=event['url'],
+                            )
+                            break
+        elif 'deschedule' in request.POST:
+            form_scheduled = EventForm(request.POST)
+            form_scheduled.set_choices(events=events_scheduled_mod)
+
+            if form_scheduled.is_valid():
+                for selected_event in form_scheduled.cleaned_data['Events']:
+                    for event in events_scheduled:
+                        if selected_event == event.url:
+                            record = ASVZEvent.objects.get(url=event.url, user=user)
+                            record.delete()
+                            break
+        return redirect("main:home")
+
+    form = EventForm()
+    form.set_choices(events=events)
+
+    form_scheduled = EventForm()
+    form_scheduled.set_choices(events=events_scheduled_mod)
+
     return render(
         request,
         'main/home.html',
-        {'data': data}
+        {'form': form, 'form_scheduled': form_scheduled}
     )
 
 
@@ -34,7 +94,10 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.first_name = form.cleaned_data.get('password1')
+            with open('../bot/key.lock', 'r') as key_file:
+                key = bytes(key_file.read(), 'utf-8')
+            f = Fernet(key)
+            user.first_name = f.encrypt(bytes(form.cleaned_data.get('password1'), 'utf-8')).decode('utf-8')
             user.save()
             user.refresh_from_db()
             username = form.cleaned_data.get('username')
@@ -99,8 +162,11 @@ def account(request):
         form = PasswordChangeForm(user=request.user, data=request.POST)
         if form.is_valid():
             form.save()
-            user = User.objects.get(request.user['username'])
-            user.first_name = form.cleaned_data.get('new_password1')
+            user = request.user
+            with open('../bot/key.lock', 'r') as key_file:
+                key = bytes(key_file.read(), 'utf-8')
+            f = Fernet(key)
+            user.first_name = f.encrypt(bytes(form.cleaned_data.get('new_password1'), 'utf-8')).decode('utf-8')
             user.save()
             user.refresh_from_db()
             update_session_auth_hash(request, form.user)
