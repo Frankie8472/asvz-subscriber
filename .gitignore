@@ -1,3 +1,5 @@
 .idea/
 migrations/
 venv/
+asvzsubscriber/main/__pycache__
+asczsubscriber/asvzsubscriber/main/__pycache__
