@@ -25,7 +25,7 @@ SECRET_KEY = 'p85d&k7z%v)^93v(a+yoj3gbc7+fsxt6&$huv*s=hw78xd4x=f'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.18','knobel.internet-box.ch']
 
 
 # Application definition
