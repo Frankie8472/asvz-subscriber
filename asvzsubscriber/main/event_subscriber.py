@@ -2,7 +2,7 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -45,9 +45,9 @@ def event_subscriber(username, password, url):
     lesson_register_time_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/tabset/div/tab/div/div/div/div[1]/div/div[2]/app-lesson-properties-display/dl[10]/dd'
     lesson_confirm_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/app-lessons-enrollment-button/div[1]/div/alert/div'
 
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    browser = webdriver.Chrome('/home/frankie/asvz-subscriber/asvzsubscriber/chromedriver', options=chrome_options)
+    firefox_options = Options()
+    firefox_options.headless = True
+    browser = webdriver.Firefox('/usr/bin/geckodrvier', options=firefox_options)
     print(f"{bot_id} ==> Opening Lesson Page")
     browser.get(lesson_url)
     wait_for_element_location(bot_id, browser, asvzlogin_xpath).click()
