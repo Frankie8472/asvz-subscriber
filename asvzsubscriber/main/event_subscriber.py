@@ -23,9 +23,18 @@ class element_located_not_disabled(object):
             return element
 
 
-def wait_for_element_location(bot_id, browser, xpath, delay=5, interval=0.5):
+def wait_for_element_location(bot_id, browser, search_art="class", search_name="", delay=10, interval=0.5):
     try:
-        element = WebDriverWait(browser, delay, interval).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        if search_art == "class":
+            search_option = By.CLASS_NAME
+        elif search_art == "name":
+            search_option = By.NAME
+        elif search_art == "xpath":
+            search_option = By.XPATH
+        else:  # id
+            search_option = By.ID
+
+        element = WebDriverWait(browser, delay, interval).until(EC.presence_of_element_located((search_option, search_name)))
         return element
     except TimeoutException:
         print(f"{bot_id} !! Loading took too much time!")
@@ -34,14 +43,15 @@ def wait_for_element_location(bot_id, browser, xpath, delay=5, interval=0.5):
 def event_subscriber(username, password, url):
     bot_id = f"{username}:{url[-6:]}"
     lesson_url = url
-    asvzlogin_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/app-lessons-enrollment-button/button'
-    aailogin_xpath = '/html/body/div/div[5]/div[2]/div/div[2]/div/form/div/p/button'
-    institution_selection_xpath = '//*[@id="userIdPSelection_iddtext"]'
-    institution_submit_xpath = '/html/body/div/div/div[2]/form/div/div[1]/input'
-    eth_username_xpath = '//*[@id="username"]'
-    eth_password_xpath = '//*[@id="password"]'
-    eth_login_xpath = '/html/body/div[2]/main/section/div[2]/div[2]/form/div[5]/button'
-    lesson_register_xpath = '//*[@id="btnRegister"]'
+
+    asvzlogin_class = "btn-default"
+    aailogin_name = 'provider'
+    institution_selection_id = 'userIdPSelection_iddtext'
+    institution_submit_name = 'Select'
+    eth_username_id = 'username'
+    eth_password_id = 'password'
+    eth_login_name = '_eventId_proceed'
+    lesson_register_id = 'btnRegister'
     lesson_register_time_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/tabset/div/tab/div/div/div/div[1]/div/div[2]/app-lesson-properties-display/dl[10]/dd'
     lesson_confirm_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/app-lessons-enrollment-button/div[1]/div/alert/div'
 
@@ -50,24 +60,25 @@ def event_subscriber(username, password, url):
     browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
     print(f"{bot_id} ==> Opening Lesson Page")
     browser.get(lesson_url)
-    wait_for_element_location(bot_id, browser, asvzlogin_xpath).click()
+    wait_for_element_location(bot_id, browser, "class", asvzlogin_class).click()
     print(f"{bot_id} ==> Opening ASVZ Login Page")
-    time.sleep(0.5)
-    wait_for_element_location(bot_id, browser, aailogin_xpath).click()
+    time.sleep(5)
+    wait_for_element_location(bot_id, browser, "name", aailogin_name).click()
+
     print(f"{bot_id} ==> Opening AAI Login Page")
     time.sleep(1)
     print(f"{bot_id} ==> Selecting Institution")
-    dropdown_field = wait_for_element_location(bot_id, browser, institution_selection_xpath)
+    dropdown_field = wait_for_element_location(bot_id, browser, "id", institution_selection_id)
     # dropdown_field.clear()
     dropdown_field.send_keys('ETH Zürich')
     time.sleep(1)
-    browser.find_element_by_xpath(institution_submit_xpath).click()
+    browser.find_element_by_name(institution_submit_name).click()
     print(f"{bot_id} ==> Opening ETH Login Page")
-    wait_for_element_location(bot_id, browser, eth_username_xpath).send_keys(username)
+    wait_for_element_location(bot_id, browser, "id", eth_username_id).send_keys(username)
     time.sleep(0.5)
-    browser.find_element_by_xpath(eth_password_xpath).send_keys(password)
-    browser.find_element_by_xpath(eth_login_xpath).click()
-    wait_for_element_location(bot_id, browser, lesson_register_xpath)
+    browser.find_element_by_id(eth_password_id).send_keys(password)
+    browser.find_element_by_name(eth_login_name).click()
+    wait_for_element_location(bot_id, browser, "id", lesson_register_id)
     time.sleep(0.5)
     print(f"{bot_id} ==> Wait for register start")
     lesson_register_time_str = browser.find_element_by_xpath(lesson_register_time_xpath).text[4:20]
@@ -78,8 +89,8 @@ def event_subscriber(username, password, url):
     if timedelta.total_seconds() > 0.0:
         time.sleep(timedelta.total_seconds())
     print(f"{bot_id} ==> Registering")
-    browser.find_element_by_xpath('//*[@id="btnRegister"]').click()
-    elem = wait_for_element_location(bot_id, browser, lesson_confirm_xpath)
+    browser.find_element_by_id('btnRegister').click()
+    elem = wait_for_element_location(bot_id, browser, "xpath", lesson_confirm_xpath)
     print(f"{bot_id} ==> " + str.split(elem.text, '\n')[-1])
     browser.quit()
     return
@@ -87,4 +98,4 @@ def event_subscriber(username, password, url):
 
 # For test purposes
 if __name__ == '__main__':
-    event_subscriber(username="knobelf", password="", url="")
+    event_subscriber(username="knobelf", password="4232----bqie", url="https://schalter.asvz.ch/tn/lessons/142133")
