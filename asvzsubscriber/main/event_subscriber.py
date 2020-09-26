@@ -2,7 +2,6 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -48,7 +47,7 @@ def event_subscriber(username, password, url):
 
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    browser = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+    browser = webdriver.Chrome('/home/frankie/asvz-subscriber/asvzsubscriber/chromedriver', options=chrome_options)
     print(f"{bot_id} ==> Opening Lesson Page")
     browser.get(lesson_url)
     wait_for_element_location(bot_id, browser, asvzlogin_xpath).click()
