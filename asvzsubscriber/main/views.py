@@ -179,7 +179,7 @@ def account(request):
     )
 
 
-def update_url(limit=50, time=None, sauna=True):
+def update_url(limit=150, time=None, sauna=False):
     if time is None:
         time = str(datetime.now(pytz.timezone('Europe/Zurich')) + timedelta(days=1))[:-16]
 
@@ -195,7 +195,7 @@ def update_url(limit=50, time=None, sauna=True):
     with urllib.request.urlopen(url) as url:
         data = json.loads(url.read().decode())
 
-    if False:
+    if True:
         events_to_be_removed = []
         for event in data['results']:
             current_time = datetime.now(pytz.timezone('Europe/Zurich'))
