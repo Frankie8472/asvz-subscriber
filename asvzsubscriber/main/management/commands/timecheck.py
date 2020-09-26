@@ -30,7 +30,7 @@ def check_time():
                 user = event.user
                 username = user.username
                 url = event.url
-                with open('/home/frankie/asvz_subscriber/key.lock', 'r') as key_file:
+                with open('/home/frankie/asvz-subscriber/key.lock', 'r') as key_file:
                     key = bytes(key_file.read(), 'utf-8')
                 f = Fernet(key)
                 password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
