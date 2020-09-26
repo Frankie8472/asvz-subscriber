@@ -25,16 +25,12 @@ def check_time():
                     key = bytes(key_file.read(), 'utf-8')
                 f = Fernet(key)
                 password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
-                start_bot(url, username, password)
+
+                bot_id = f"{username}:{url[-6:]}"
+                print(f"{bot_id} ==> Dispatch Bot")
+                dispatch_thread = threading.Thread(target=event_subscriber(username, password, url), name=bot_id)
+                dispatch_thread.start()
             event.delete()
         else:
             break
-    return
-
-
-def start_bot(url, user, password):
-    bot_id = f"{user}:{url[-6:]}"
-    print(f"{bot_id} ==> Dispatch Bot")
-    dispatch_thread = threading.Thread(target=event_subscriber(user, password, url), name=bot_id)
-    dispatch_thread.start()
     return
