@@ -89,7 +89,7 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            with open('/home/frankie/asvz_subscriber/key.lock', 'r') as key_file:
+            with open('/home/frankie/asvz-subscriber/key.lock', 'r') as key_file:
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
             user.first_name = f.encrypt(bytes(form.cleaned_data.get('password1'), 'utf-8')).decode('utf-8')
@@ -158,7 +158,7 @@ def account(request):
         if form.is_valid():
             form.save()
             user = request.user
-            with open('/home/frankie/asvz_subscriber/key.lock', 'r') as key_file:
+            with open('/home/frankie/asvz-subscriber/key.lock', 'r') as key_file:
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
             user.first_name = f.encrypt(bytes(form.cleaned_data.get('new_password1'), 'utf-8')).decode('utf-8')
