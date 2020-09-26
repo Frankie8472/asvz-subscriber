@@ -3,8 +3,17 @@ import pytz
 from cryptography.fernet import Fernet
 import threading
 
+from django.core.management import BaseCommand
+
+from main.event_subscriber import event_subscriber
 from main.models import ASVZEvent
-from event_subscriber import event_subscriber
+
+
+class Command(BaseCommand):
+    help = 'Checks for events to register'
+
+    def handle(self, *args, **kwargs):
+        check_time()
 
 
 def check_time():
