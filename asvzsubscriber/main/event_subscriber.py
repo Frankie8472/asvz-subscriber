@@ -47,7 +47,7 @@ def event_subscriber(username, password, url):
 
     firefox_options = Options()
     firefox_options.headless = True
-    browser = webdriver.Firefox('/usr/bin/geckodriver', options=firefox_options)
+    browser = webdriver.Firefox(firefox_binary='/usr/bin/geckodriver', options=firefox_options)
     print(f"{bot_id} ==> Opening Lesson Page")
     browser.get(lesson_url)
     wait_for_element_location(bot_id, browser, asvzlogin_xpath).click()
