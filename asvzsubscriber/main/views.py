@@ -40,7 +40,8 @@ def home(request):
         selected_limit = request.POST.get('limit')
         selected_sauna = 'checked' if request.POST.get('sauna') == 'on' else ''
 
-    if selected_sauna == 'checked':
+    if request.method == 'POST' and request.POST.get('sauna') == 'on':
+        selected_sauna = 'checked'
         selected_limit = 200
         selected_sporttypes = ['Specials']
         selected_facilities = ['Sport Center Hönggerberg']
