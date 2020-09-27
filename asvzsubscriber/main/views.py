@@ -23,19 +23,50 @@ def home(request):
     events_scheduled = [event for event in ASVZEvent.objects.filter(user=user)]
     events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
 
-    data = update_url()
+    selected_sporttypes = []
+    selected_facilities = []
+    tomorrow = datetime.now(tz=pytz.timezone('Europe/Zurich')) + timedelta(days=1)
+    selected_date = tomorrow.strftime('%d.%m.%Y')
+    selected_time = tomorrow.strftime('%H:%M')
+    selected_limit = '15'
+    selected_sauna = ''
+
+    if request.method == 'POST' and 'show_results' in request.POST:
+        # Read selection
+        selected_sporttypes = request.POST.getlist('sporttype')
+        selected_facilities = request.POST.getlist('facility')
+        selected_date = request.POST.get('date')
+        selected_time = request.POST.get('time')
+        selected_limit = request.POST.get('limit')
+        selected_sauna = 'checked' if request.POST.get('sauna') == 'on' else ''
+
+    if selected_sauna == 'checked':
+        selected_limit = 200
+        selected_sporttypes = ['Specials']
+        selected_facilities = ['Sport Center Hönggerberg']
+
+    data, default_data = update_url(
+        show_results=selected_limit,
+        sporttypes=selected_sporttypes,
+        facilities=selected_facilities,
+        date=selected_date,
+        time=selected_time,
+        sauna=True if selected_sauna == 'checked' else False,
+    )
 
     events = [(
         event['url'],
-        mark_safe(f"<span>{str(datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')))[5:-9]} | {event['sport_name']} | {event['title']} | {event['location']}</span>")
+        mark_safe(
+            f"<span>{datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']} | {event['title']} | {event['location']}</span>")
     ) for event in data['results'] if event['url'] not in events_scheduled_url]
 
     events_scheduled_mod = [(
         event.url,
-        mark_safe(f"<span>{str(event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')))[5:-9]} | {event.sport_name} | {event.title} | {event.location}</span>")
+        mark_safe(
+            f"<span>{event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name} | {event.title} | {event.location}</span>")
     ) for event in events_scheduled]
 
-    if request.method == 'POST':
+    if request.method == 'POST' and not ('show_results' in request.POST):
         if 'schedule' in request.POST:
             form = EventForm(request.POST)
             form.set_choices(events=events)
@@ -65,6 +96,7 @@ def home(request):
                             record = ASVZEvent.objects.get(url=event.url, user=user)
                             record.delete()
                             break
+
         return redirect("main:home")
 
     form = EventForm()
@@ -73,10 +105,23 @@ def home(request):
     form_scheduled = EventForm()
     form_scheduled.set_choices(events=events_scheduled_mod)
 
+    sporttypes = [t['label'] for t in default_data['facets'][8]['terms']]
+    facilities = [f['label'] for f in default_data['facets'][1]['terms']]
+
     return render(
         request,
         'main/home.html',
-        {'form': form, 'form_scheduled': form_scheduled}
+        {'form': form,
+         'form_scheduled': form_scheduled,
+         'sporttypes': sporttypes,
+         'facilities': facilities,
+         'selected_sporttypes': selected_sporttypes,
+         'selected_facilities': selected_facilities,
+         'selected_date': selected_date,
+         'selected_time': selected_time,
+         'selected_limit': selected_limit,
+         'selected_sauna': mark_safe(selected_sauna),
+         }
     )
 
 
@@ -179,36 +224,55 @@ def account(request):
     )
 
 
-def update_url(limit=150, time=None, sauna=False):
-    if time is None:
-        time = str(datetime.now(pytz.timezone('Europe/Zurich')) + timedelta(hours=12))[:-16]
+def update_url(show_results=15, sporttypes=None, facilities=None, date=None, time=None, sauna=False):
+    default_url = 'https://asvz.ch/asvz_api/event_search?_format=json&limit=0'
+    with urllib.request.urlopen(default_url) as url:
+        default_data = json.loads(url.read().decode())
 
-    if sauna:
-        asvz_sport_center = 109
-        sport_center_hoenggerberg = 45598
-        specials = 80587
-        url = f"https://asvz.ch/asvz_api/event_search?_format=json&limit={limit}&date={time[:10]}%20{time[11:]}&f[0]=facility_type:{asvz_sport_center}&f[1]=facility:{sport_center_hoenggerberg}&f[2]=sport:{specials}&selected=date:f0:f1:f2"
+    sporttype_string = ''
+    facility_string = ''
+    i = 0
+    for sporttype in sporttypes:
+        for fulltype in default_data['facets'][8]['terms']:
+            if fulltype['label'] == sporttype:
+                sporttype_string = sporttype_string + f"&f[{i}]=sport:{fulltype['tid']}"
+                break
+        i += 1
 
-    else:
-        url = f'https://asvz.ch/asvz_api/event_search?_format=json&limit={limit}&date={time[:10]}%20{time[11:]}&selected=date'
+    for facility in facilities:
+        for fulltype in default_data['facets'][1]['terms']:
+            if fulltype['label'] == facility:
+                sporttype_string = sporttype_string + f"&f[{i}]=facility:{fulltype['tid']}"
+                break
+        i += 1
+
+    f_appendix = ''
+    for cnt in range(0, i):
+        f_appendix = f_appendix + f":f[{cnt}]"
+
+    url = f"https://asvz.ch/asvz_api/event_search?_format=json&limit={show_results}&date={date[6:10]}-{date[3:5]}-{date[0:2]}%20{time}{sporttype_string}{facility_string}&selected=date{f_appendix}"
+
+    print(url)
 
     with urllib.request.urlopen(url) as url:
         data = json.loads(url.read().decode())
 
-    if False:
-        events_to_be_removed = []
-        for event in data['results']:
-            current_time = datetime.now(pytz.timezone('Europe/Zurich'))
-            registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich'))
-            time_delta = (registration_start - current_time).total_seconds()
-            if time_delta < 0.0:
-                events_to_be_removed.append(event)
-        for event in events_to_be_removed:
-            data['results'].remove(event)
+    # Remove already open events
+    events_to_be_removed = []
+    for event in data['results']:
+        current_time = datetime.now(pytz.timezone('Europe/Zurich'))
+        registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
+            tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich'))
+        time_delta = (registration_start - current_time).total_seconds()
+        if time_delta < 0.0:
+            events_to_be_removed.append(event)
+    for event in events_to_be_removed:
+        data['results'].remove(event)
+
     if sauna:
         events_to_be_kept = []
         for event in data['results']:
             if event['title'] == "Wellness-Zone":
                 events_to_be_kept.append(event)
         data['results'] = events_to_be_kept
-    return data
+    return data, default_data
