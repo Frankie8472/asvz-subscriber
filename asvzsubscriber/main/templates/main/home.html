@@ -4,6 +4,7 @@
     <br>
     <!-- Left Column -->
     <form method="post">
+        {% csrf_token %}
         <div class="row">
 
             <!-- Events Selection -->
@@ -13,7 +14,7 @@
                 </label>
                 <!--<form method='post'>-->
                     <button type="submit" class="btn btn-success" name="schedule" value="schedule">Schedule Selected Events</button>
-                    {% csrf_token %}
+                    <!--{% csrf_token %}-->
                     {{ form.as_p }}
                     <button type="submit" class="btn btn-success" name="schedule" value="schedule">Schedule Selected Events</button>
                 <!--</form>-->
@@ -22,7 +23,7 @@
             <!-- Right Column -->
             <div class="col s6">
                 <!--<form method="POST">-->
-                    {% csrf_token %}
+                    <!--{% csrf_token %}-->
                     <div class="row">
                         <!-- Sporttype -->
                         <div class="input-field col s6">
@@ -93,7 +94,7 @@
                         </label>
                         <!--<form method='POST'>-->
                             <button type="submit" class="btn btn-success" name="deschedule" value="deschedule">Deschedule Selected Events</button>
-                            {% csrf_token %}
+                            <!--{% csrf_token %}-->
                             {{ form_scheduled.as_p }}
                         <!--</form>-->
                     </div>
