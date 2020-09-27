@@ -31,7 +31,7 @@ def home(request):
     selected_limit = '15'
     selected_sauna = ''
 
-    if request.method == 'POST' and 'show_results' in request.POST:
+    if request.method == 'POST':
         # Read selection
         selected_sporttypes = request.POST.getlist('sporttype')
         selected_facilities = request.POST.getlist('facility')
@@ -40,11 +40,10 @@ def home(request):
         selected_limit = request.POST.get('limit')
         selected_sauna = 'checked' if request.POST.get('sauna') == 'on' else ''
 
-    if request.method == 'POST' and request.POST.get('sauna') == 'on':
-        selected_sauna = 'checked'
-        selected_limit = 200
-        selected_sporttypes = ['Specials']
-        selected_facilities = ['Sport Center Hönggerberg']
+        if selected_sauna == 'checked':
+            selected_limit = 200
+            selected_sporttypes = ['Specials']
+            selected_facilities = ['Sport Center Hönggerberg']
 
     data, default_data = update_url(
         show_results=selected_limit,
