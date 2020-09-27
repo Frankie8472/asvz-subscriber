@@ -13,6 +13,7 @@ from cryptography.fernet import Fernet
 from .forms import EventForm
 from .models import ASVZEvent
 
+
 def load_events(data, user):
     events_scheduled = [event for event in ASVZEvent.objects.filter(user=user)]
     events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
@@ -20,13 +21,13 @@ def load_events(data, user):
     events = [(
         event['url'],
         mark_safe(
-            f"<span>{datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']} | {event['title']} | {event['location']}</span>")
+            f"<span>{datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']}{'' if event['beginner_friendly'] else '+'} | {event['title']} | {event['location']}</span>")
     ) for event in data['results'] if event['url'] not in events_scheduled_url]
 
     events_scheduled_mod = [(
         event.url,
         mark_safe(
-            f"<span>{event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name} | {event.title} | {event.location}</span>")
+            f"<span>{event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name}{'' if event.beginner_friendly else '+'} | {event.title} | {event.location}</span>")
     ) for event in events_scheduled]
     return events, events_scheduled, events_scheduled_mod
 
@@ -88,6 +89,7 @@ def home(request):
                                 event_start_date=event['from_date'],
                                 register_start_date=event['oe_from_date'],
                                 url=event['url'],
+                                beginner_friendly=event['beginner_friendly'],
                             )
                             break
         elif 'deschedule' in request.POST:

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import DateTimeField, CharField, URLField
+from django.db.models import DateTimeField, CharField, URLField, BooleanField
 
 
 # Create your models here.
@@ -12,6 +12,7 @@ class ASVZEvent(models.Model):
     event_start_date: DateTimeField = models.DateTimeField()
     register_start_date: DateTimeField = models.DateTimeField()
     url: URLField = models.URLField()
+    beginner_friendly: BooleanField = models.BooleanField()
 
     class Meta:
         unique_together = ("user", "url")
