@@ -24,25 +24,33 @@ class element_located_not_disabled(object):
 
 
 def wait_for_element_location(bot_id, browser, search_art="class", search_name="", delay=10, interval=0.5):
-    try:
-        if search_art == "class":
-            search_option = By.CLASS_NAME
-        elif search_art == "name":
-            search_option = By.NAME
-        elif search_art == "xpath":
-            search_option = By.XPATH
-        else:  # id
-            search_option = By.ID
-
-        element = WebDriverWait(browser, delay, interval).until(EC.presence_of_element_located((search_option, search_name)))
-        return element
-    except TimeoutException:
-        print(f"{bot_id} !! Loading took too much time!")
+    cnt = 0
+    if search_art == "class":
+        search_option = By.CLASS_NAME
+    elif search_art == "name":
+        search_option = By.NAME
+    elif search_art == "xpath":
+        search_option = By.XPATH
+    else:  # id
+        search_option = By.ID
+    while True:
+        try:
+            element = WebDriverWait(browser, delay, interval).until(EC.presence_of_element_located((search_option, search_name)))
+            return element
+        except TimeoutException:
+            cnt += 1
+            print(f"{bot_id} !! Loading took too much time! Trying again...")
+            time.sleep(5)
+            if cnt < 5:
+                pass
+            else:
+                return browser.find_element(search_option, search_name)
 
 
 def event_subscriber(event, username, password, url):
     bot_id = f"{username}:{url[-6:]}"
     lesson_url = url
+    sleeptimeoffset = 0.0
 
     asvzlogin_class = "btn-default"
     aailogin_name = 'provider'
@@ -86,21 +94,25 @@ def event_subscriber(event, username, password, url):
     timezone = datetime.now(pytz.timezone('Europe/Zurich')).tzinfo
     lesson_register_time_datetime = datetime.strptime(lesson_register_time_str, '%d.%m.%Y %H:%M').replace(tzinfo=timezone)
 
+    cnt = 0
     while True:
         try:
             current_time = datetime.fromtimestamp(ntplib.NTPClient().request('ch.pool.ntp.org', version=3).tx_time, timezone)
             break
         except ValueError:
             print(f"{bot_id} ==> NTP Error, trying again in 10 seconds")
+            cnt += 1
             time.sleep(10)
+            if cnt < 10:
+                pass
 
     timedelta = lesson_register_time_datetime - current_time
     if timedelta.total_seconds() > 0.0:
-        time.sleep(timedelta.total_seconds())
+        time.sleep(timedelta.total_seconds() - sleeptimeoffset)
 
     print(f"{bot_id} ==> Registering")
     browser.find_element_by_id('btnRegister').click()
-    elem = wait_for_element_location(bot_id, browser, "xpath", lesson_confirm_xpath)
+    elem = wait_for_element_location(bot_id, browser, "xpath", lesson_confirm_xpath, delay=30)
     print(f"{bot_id} ==> " + str.split(elem.text, '\n')[-1])
     browser.quit()
     print(f"{bot_id} ==> Deleting Event")
