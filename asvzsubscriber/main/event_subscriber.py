@@ -80,14 +80,24 @@ def event_subscriber(event, username, password, url):
     browser.find_element_by_name(eth_login_name).click()
     wait_for_element_location(bot_id, browser, "id", lesson_register_id)
     time.sleep(0.5)
+
     print(f"{bot_id} ==> Wait for register start")
     lesson_register_time_str = browser.find_element_by_xpath(lesson_register_time_xpath).text[4:20]
     timezone = datetime.now(pytz.timezone('Europe/Zurich')).tzinfo
     lesson_register_time_datetime = datetime.strptime(lesson_register_time_str, '%d.%m.%Y %H:%M').replace(tzinfo=timezone)
-    current_time = datetime.fromtimestamp(ntplib.NTPClient().request('ch.pool.ntp.org', version=3).tx_time, timezone)
+
+    while True:
+        try:
+            current_time = datetime.fromtimestamp(ntplib.NTPClient().request('ch.pool.ntp.org', version=3).tx_time, timezone)
+            break
+        except ValueError:
+            print(f"{bot_id} ==> NTP Error, trying again in 10 seconds")
+            time.sleep(10)
+
     timedelta = lesson_register_time_datetime - current_time
     if timedelta.total_seconds() > 0.0:
         time.sleep(timedelta.total_seconds())
+
     print(f"{bot_id} ==> Registering")
     browser.find_element_by_id('btnRegister').click()
     elem = wait_for_element_location(bot_id, browser, "xpath", lesson_confirm_xpath)
