@@ -3,3 +3,4 @@ venv/
 *.pyc
 *.pyo
 geckodriver.log
+db.sqlite3
