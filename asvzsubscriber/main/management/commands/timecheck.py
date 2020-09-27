@@ -26,20 +26,20 @@ def check_time():
         if time_delta < 5*60:
             event = event_list[0]
             event_list = event_list[1:]
-            if True or time_delta > 0.0:
-                user = event.user
-                username = user.username
-                url = event.url
-                with open('/home/frankie/asvz-subscriber/key.lock', 'r') as key_file:
-                    key = bytes(key_file.read(), 'utf-8')
-                f = Fernet(key)
-                password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
 
-                bot_id = f"{username}:{url[-6:]}"
-                print(f"{bot_id} ==> Dispatch Bot")
-                dispatch_thread = threading.Thread(target=event_subscriber(username, password, url), name=bot_id)
-                dispatch_thread.start()
-            event.delete()
+            user = event.user
+            username = user.username
+            url = event.url
+            with open('/home/frankie/asvz-subscriber/key.lock', 'r') as key_file:
+                key = bytes(key_file.read(), 'utf-8')
+            f = Fernet(key)
+            password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
+
+            bot_id = f"{username}:{url[-6:]}"
+
+            print(f"{bot_id} ==> Dispatch Bot")
+            dispatch_thread = threading.Thread(target=event_subscriber(event, username, password, url), name=bot_id)
+            dispatch_thread.start()
         else:
             break
     return
