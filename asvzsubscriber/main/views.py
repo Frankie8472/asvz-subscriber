@@ -15,7 +15,7 @@ from .models import ASVZEvent
 
 
 def load_events(data, user):
-    events_scheduled = [event for event in ASVZEvent.objects.filter(user=user)]
+    events_scheduled = [event for event in ASVZEvent.objects.order_by('register_start_date').filter(user=user)]
     events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
 
     events = [(
@@ -114,6 +114,8 @@ def home(request):
 
     sporttypes = [t['label'] for t in default_data['facets'][8]['terms']]
     facilities = [f['label'] for f in default_data['facets'][1]['terms']]
+    sporttypes.sort()
+    facilities.sort()
 
     return render(
         request,
