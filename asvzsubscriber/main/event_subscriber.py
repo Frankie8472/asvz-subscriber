@@ -40,7 +40,7 @@ def wait_for_element_location(bot_id, browser, search_art="class", search_name="
         print(f"{bot_id} !! Loading took too much time!")
 
 
-def event_subscriber(username, password, url):
+def event_subscriber(event, username, password, url):
     bot_id = f"{username}:{url[-6:]}"
     lesson_url = url
 
@@ -93,9 +93,11 @@ def event_subscriber(username, password, url):
     elem = wait_for_element_location(bot_id, browser, "xpath", lesson_confirm_xpath)
     print(f"{bot_id} ==> " + str.split(elem.text, '\n')[-1])
     browser.quit()
+    print(f"{bot_id} ==> Deleting Event")
+    event.delete()
     return
 
 
 # For test purposes
 if __name__ == '__main__':
-    event_subscriber(username="knobelf", password="***REMOVED***", url="https://schalter.asvz.ch/tn/lessons/142133")
+    event_subscriber(username="knobelf", password="", url="https://schalter.asvz.ch/tn/lessons/142133")
