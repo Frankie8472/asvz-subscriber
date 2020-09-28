@@ -269,17 +269,17 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     with urllib.request.urlopen(url) as url:
         data = json.loads(url.read().decode())
 
-    # # Remove already open events
-    # events_to_be_removed = []
-    # for event in data['results']:
-    #     current_time = datetime.now(pytz.timezone('Europe/Zurich'))
-    #     registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
-    #         tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich'))
-    #     time_delta = (registration_start - current_time).total_seconds()
-    #     if time_delta < 0.0:
-    #         events_to_be_removed.append(event)
-    # for event in events_to_be_removed:
-    #     data['results'].remove(event)
+    # Remove already open events
+    events_to_be_removed = []
+    for event in data['results']:
+        current_time = datetime.now(pytz.timezone('Europe/Zurich'))
+        registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
+            tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich'))
+        time_delta = (registration_start - current_time).total_seconds()
+        if time_delta < 0.0:
+            events_to_be_removed.append(event)
+    for event in events_to_be_removed:
+        data['results'].remove(event)
 
     if sauna:
         events_to_be_kept = []
