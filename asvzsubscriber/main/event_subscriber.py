@@ -10,6 +10,8 @@ import pytz
 from datetime import datetime
 import ntplib
 
+from main.models import ASVZEvent
+
 
 class element_located_not_disabled(object):
     def __init__(self, locator):
@@ -47,7 +49,7 @@ def wait_for_element_location(bot_id, browser, search_art="class", search_name="
                 return browser.find_element(search_option, search_name)
 
 
-def event_subscriber(event, username, password, url):
+def event_subscriber(event: ASVZEvent, username, password, url):
     bot_id = f"{username}:{url[-6:]}"
     lesson_url = url
     sleeptimeoffset = 0.0
@@ -60,7 +62,6 @@ def event_subscriber(event, username, password, url):
     eth_password_id = 'password'
     eth_login_name = '_eventId_proceed'
     lesson_register_id = 'btnRegister'
-    lesson_register_time_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/tabset/div/tab/div/div/div/div[1]/div/div[2]/app-lesson-properties-display/dl[10]/dd'
     lesson_confirm_xpath = '/html/body/app-root/div/div[2]/app-lesson-details/div/div/app-lessons-enrollment-button/div[1]/div/alert/div'
 
     firefox_options = Options()
@@ -90,9 +91,8 @@ def event_subscriber(event, username, password, url):
     time.sleep(0.5)
 
     print(f"{bot_id} ==> Wait for register start")
-    lesson_register_time_str = browser.find_element_by_xpath(lesson_register_time_xpath).text[4:20]
     timezone = datetime.now(pytz.timezone('Europe/Zurich')).tzinfo
-    lesson_register_time_datetime = datetime.strptime(lesson_register_time_str, '%d.%m.%Y %H:%M').replace(tzinfo=timezone)
+    lesson_register_time_datetime = event.register_start_date.replace(tzinfo=timezone)
 
     cnt = 0
     while True:
