@@ -274,7 +274,7 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     for event in data['results']:
         current_time = datetime.now(pytz.timezone('Europe/Zurich'))
         registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
-            tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich'))
+            tzinfo=timezone.utc).astimezone(tz=current_time.tzinfo)
         time_delta = (registration_start - current_time).total_seconds()
         if time_delta < 0.0:
             events_to_be_removed.append(event)
