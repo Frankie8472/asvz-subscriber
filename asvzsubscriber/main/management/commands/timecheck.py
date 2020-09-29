@@ -1,15 +1,12 @@
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-
 import pytz
 from cryptography.fernet import Fernet
-import threading
-
 from django.core.management import BaseCommand
-
 from main.event_subscriber import event_subscriber
 from main.models import ASVZEvent
+from pathos.multiprocessing import ProcessPool
 
 
 class Command(BaseCommand):
@@ -23,6 +20,10 @@ def check_time():
     print(f"========= Chron Job =========")
     current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
     event_list = ASVZEvent.objects.order_by('register_start_date')
+
+    pool_event = []
+    pool_username = []
+    pool_pw = []
     while event_list:
         register_time = event_list[0].register_start_date.replace(tzinfo=timezone.utc).astimezone(
             tz=pytz.timezone('Europe/Zurich'))
@@ -39,12 +40,12 @@ def check_time():
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
             password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
-
-            bot_id = f"{username}:{url[-6:]}"
-
-            print(f"{bot_id} ==> Dispatch Bot")
-            dispatch_thread = threading.Thread(target=event_subscriber(event, username, password), name=bot_id)
-            dispatch_thread.start()
+            pool_event.append(event)
+            pool_username.append(username)
+            pool_pw.append(password)
         else:
             break
+
+    pool = ProcessPool(nodes=10)
+    pool.map(event_subscriber, pool_event, pool_username, pool_pw)
     return
