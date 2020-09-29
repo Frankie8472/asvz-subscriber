@@ -130,9 +130,6 @@ def event_subscriber(event=None, username=None, password=None):
 
     sleeptimeoffset = 3
     timedelta = lesson_register_time_datetime - current_time
-    print(lesson_register_time_datetime)
-    print(current_time)
-    print(timedelta.total_seconds())
     if timedelta.total_seconds() > 0.0:
         time.sleep(timedelta.total_seconds() - sleeptimeoffset)
 
@@ -140,24 +137,30 @@ def event_subscriber(event=None, username=None, password=None):
     print(f"{bot_id} ==> Registering")
     ret = 422
     cnt = 0
-    while (ret != 201) and (cnt < 2 * 3):
-        ret = requests.post(
-            url=f'https://schalter.asvz.ch/tn-api/api/Lessons/{event_id}/enroll?%3Ft={logtime}',
-            headers={
-                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
-                'Accept': 'application/json, text/plain, */*',
-                'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
-                'Authorization': f'Bearer {bearer}',
-                'Content-Type': 'application/json',
-                'Origin': 'https://schalter.asvz.ch',
-                'DNT': '1',
-                'Connection': 'keep-alive',
-                'Referer': f'https://schalter.asvz.ch/tn/lessons/{event_id}',
-            }
-        ).status_code
-        print(ret)
-        time.sleep(0.05)
-        cnt += 0.05
+    while (ret != 201) and (cnt < 2 * sleeptimeoffset):
+        try:
+            ret = requests.post(
+                url=f'https://schalter.asvz.ch/tn-api/api/Lessons/{event_id}/enroll?%3Ft={logtime}',
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
+                    'Authorization': f'Bearer {bearer}',
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://schalter.asvz.ch',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Referer': f'https://schalter.asvz.ch/tn/lessons/{event_id}',
+                }
+            ).status_code
+            print(ret)
+
+        except ValueError:
+            pass
+
+        step = 0.1
+        time.sleep(step)
+        cnt += step
 
     if ret == 422:
         print(f"{bot_id} ==> Registering Failed")
