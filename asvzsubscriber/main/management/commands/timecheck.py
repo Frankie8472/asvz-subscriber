@@ -46,6 +46,7 @@ def check_time():
         else:
             break
 
-    pool = ProcessPool(nodes=10)
-    pool.map(event_subscriber, pool_event, pool_username, pool_pw)
+    if pool_event:
+        pool = ProcessPool(nodes=10)
+        pool.map(event_subscriber, pool_event, pool_username, pool_pw)
     return
