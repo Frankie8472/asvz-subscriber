@@ -7,8 +7,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-import pytz
-from datetime import datetime
+from datetime import datetime, timezone
 import ntplib
 import requests
 
@@ -26,7 +25,7 @@ class element_located_not_disabled(object):
 
 
 def unix_time_millis(dt):
-    return round((dt - datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)).total_seconds() * 1000)
+    return round((dt - datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)).total_seconds() * 1000)
 
 
 def wait_for_element_location(bot_id, browser, search_art="class", search_name="", delay=10, interval=0.5):
@@ -103,8 +102,7 @@ def event_subscriber(event=None, username=None, password=None):
     time.sleep(0.5)
 
     # Get bearer token and reg time
-    timezone = datetime.now(pytz.timezone('Europe/Zurich')).tzinfo
-    lesson_register_time_datetime = event.register_start_date.replace(tzinfo=timezone)
+    lesson_register_time_datetime = (event.register_start_date).replace(tzinfo=timezone.utc)
     logtime = unix_time_millis(lesson_register_time_datetime)
     bearer = None
     for key, value in browser.execute_script("return localStorage").items():
@@ -120,7 +118,7 @@ def event_subscriber(event=None, username=None, password=None):
     while True:
         try:
             current_time = datetime.fromtimestamp(
-                ntplib.NTPClient().request('ch.pool.ntp.org', version=3).tx_time, timezone
+                ntplib.NTPClient().request('ch.pool.ntp.org', version=3).tx_time, timezone.utc
             )
             break
         except ValueError:
@@ -132,6 +130,9 @@ def event_subscriber(event=None, username=None, password=None):
 
     sleeptimeoffset = 3
     timedelta = lesson_register_time_datetime - current_time
+    print(lesson_register_time_datetime)
+    print(current_time)
+    print(timedelta.total_seconds())
     if timedelta.total_seconds() > 0.0:
         time.sleep(timedelta.total_seconds() - sleeptimeoffset)
 
