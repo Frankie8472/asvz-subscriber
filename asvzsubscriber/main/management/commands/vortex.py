@@ -3,8 +3,7 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options as Firefox_options
-from selenium.webdriver.chrome.options import Options as Chrome_options
+from selenium.webdriver.firefox.options import Options
 
 
 def into_the_vortex(firstname=''):
@@ -19,6 +18,8 @@ def into_the_vortex(firstname=''):
 def surfin_the_vortex():
     pass
 
+
 if __name__ == "__main__":
-    # into_the_vortex('')
-    surfin_the_vortex('https://schalter.asvz.ch/tn/lessons/142303')
+    # into_the_vortex()
+    # surfin_the_vortex()
+    pass
