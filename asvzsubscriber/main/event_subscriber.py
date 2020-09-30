@@ -1,5 +1,7 @@
 import json
 import time
+
+import pytz
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.expected_conditions import visibility_of_element_located
@@ -50,7 +52,7 @@ def wait_for_element_location(bot_id, browser, search_art="class", search_name="
             if cnt < 5:
                 pass
             else:
-                return browser.find_element(search_option, search_name)
+                return None
 
 
 def event_subscriber(event=None, username=None, password=None):
@@ -77,30 +79,47 @@ def event_subscriber(event=None, username=None, password=None):
     # Opening lesson page
     print(f"{bot_id} ==> Opening Lesson Page")
     browser.get(url)
-    wait_for_element_location(bot_id, browser, "class", asvzlogin_class).click()
+    elem = wait_for_element_location(bot_id, browser, "class", asvzlogin_class)
+    if elem is None:
+        print(f"{bot_id} ==> Element not found, aborting")
+        return
+    elem.click()
 
     # Opening ASVZ login page
     print(f"{bot_id} ==> Opening ASVZ Login Page")
     time.sleep(5)
-    wait_for_element_location(bot_id, browser, "name", aailogin_name).click()
+    elem = wait_for_element_location(bot_id, browser, "name", aailogin_name)
+    if elem is None:
+        print(f"{bot_id} ==> Element not found, aborting")
+        return
+    elem.click()
 
     # Opening AAI login page
     print(f"{bot_id} ==> Opening AAI Login Page")
     time.sleep(1)
     print(f"{bot_id} ==> Selecting Institution")
-    dropdown_field = wait_for_element_location(bot_id, browser, "id", institution_selection_id)
-    # dropdown_field.clear()
-    dropdown_field.send_keys('ETH Zürich')
+    elem = wait_for_element_location(bot_id, browser, "id", institution_selection_id)
+    if elem is None:
+        print(f"{bot_id} ==> Element not found, aborting")
+        return
+    elem.send_keys('ETH Zürich')
     time.sleep(1)
     browser.find_element_by_name(institution_submit_name).click()
 
     # Opening ETH Login Page
     print(f"{bot_id} ==> Opening ETH Login Page")
-    wait_for_element_location(bot_id, browser, "id", eth_username_id).send_keys(username)
+    elem = wait_for_element_location(bot_id, browser, "id", eth_username_id)
+    if elem is None:
+        print(f"{bot_id} ==> Element not found, aborting")
+        return
+    elem.send_keys(username)
     time.sleep(0.5)
     browser.find_element_by_id(eth_password_id).send_keys(password)
     browser.find_element_by_name(eth_login_name).click()
-    wait_for_element_location(bot_id, browser, "id", lesson_register_element_id)
+    elem = wait_for_element_location(bot_id, browser, "id", lesson_register_element_id)
+    if elem is None:
+        print(f"{bot_id} ==> Element not found, aborting")
+        return
     time.sleep(0.5)
 
     # Get bearer token and reg time
@@ -115,22 +134,8 @@ def event_subscriber(event=None, username=None, password=None):
 
     # Wait until 5 sec before reg opening
     print(f"{bot_id} ==> Wait for register start")
-
-    cnt = 0
-    while True:
-        try:
-            current_time = datetime.fromtimestamp(
-                ntplib.NTPClient().request('ch.pool.ntp.org', version=3).tx_time, timezone.utc
-            )
-            break
-        except ValueError:
-            print(f"{bot_id} ==> NTP Error, trying again in 10 seconds")
-            cnt += 1
-            time.sleep(10)
-            if cnt < 10:
-                pass
-
-    sleeptimeoffset = 3
+    sleeptimeoffset = 2
+    current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
     timedelta = lesson_register_time_datetime - current_time
     if timedelta.total_seconds() > 0.0:
         time.sleep(timedelta.total_seconds() - sleeptimeoffset)
@@ -155,7 +160,7 @@ def event_subscriber(event=None, username=None, password=None):
                     'Referer': f'https://schalter.asvz.ch/tn/lessons/{event_id}',
                 }
             ).status_code
-            print(ret)
+            print(f"{bot_id} ==> {ret}")
 
         except ValueError:
             pass
