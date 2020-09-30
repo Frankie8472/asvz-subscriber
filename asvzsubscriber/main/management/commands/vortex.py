@@ -36,15 +36,16 @@ def surfin_the_vortex(url):
     lesson_register_element_id = 'eventDetails'
 
     # Init browser
-    # firefox_options = Firefox_options()
-    # firefox_options.headless = True
-    # browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
+    firefox_options = Firefox_options()
+    firefox_options.headless = True
+    firefox_options.add_argument("--disable-gpu")
+    browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
 
-    chromedriver_path = os.path.join(Path(__file__).resolve().parent.parent.parent.parent.parent, 'chromedriver')
-    chrome_options = Chrome_options()
-    chrome_options.headless = True
-    chrome_options.add_argument("disable-gpu")
-    browser = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
+    # chromedriver_path = os.path.join(Path(__file__).resolve().parent.parent.parent.parent.parent, 'chromedriver')
+    # chrome_options = Chrome_options()
+    # chrome_options.headless = True
+    # chrome_options.add_argument("disable-gpu")
+    #browser = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
 
     # Opening lesson page
     print(f"{bot_id} ==> Opening Lesson Page")

@@ -79,6 +79,7 @@ def event_subscriber(event=None, password=None):
     # Init browser
     firefox_options = Options()
     firefox_options.headless = True
+    firefox_options.add_argument("--disable-gpu")
     browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
 
     # Opening lesson page
