@@ -4,4 +4,3 @@ venv
 *.pyo
 geckodriver.log
 db.sqlite3
-vortex.py
