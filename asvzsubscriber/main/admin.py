@@ -3,4 +3,3 @@ from .models import ASVZEvent
 
 # Register your models here.
 admin.site.register(ASVZEvent)
-admin.site.register()
