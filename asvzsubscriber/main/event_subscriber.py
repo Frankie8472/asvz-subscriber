@@ -67,8 +67,11 @@ def event_subscriber(event=None, username=None, password=None):
     institution_selection_id = 'userIdPSelection_iddtext'
     institution_submit_name = 'Select'
     eth_username_id = 'username'
+    uzh_username_id = 'username'
     eth_password_id = 'password'
+    uzh_password_id = 'password'
     eth_login_name = '_eventId_proceed'
+    uzh_login_name = '_eventId_proceed'
     lesson_register_element_id = 'eventDetails'
 
     # Init browser
@@ -102,20 +105,36 @@ def event_subscriber(event=None, username=None, password=None):
     if elem is None:
         print(f"{bot_id} ==> Element not found, aborting")
         return
-    elem.send_keys('ETH Zürich')
+
+    uni = event.last_name
+    elem.send_keys(uni)
     time.sleep(1)
     browser.find_element_by_name(institution_submit_name).click()
 
-    # Opening ETH Login Page
-    print(f"{bot_id} ==> Opening ETH Login Page")
-    elem = wait_for_element_location(bot_id, browser, "id", eth_username_id)
-    if elem is None:
-        print(f"{bot_id} ==> Element not found, aborting")
-        return
-    elem.send_keys(username)
-    time.sleep(0.5)
-    browser.find_element_by_id(eth_password_id).send_keys(password)
-    browser.find_element_by_name(eth_login_name).click()
+
+    if uni == 'ETH Zürich':
+        # Opening ETH Login Page
+        print(f"{bot_id} ==> Opening {uni} Login Page")
+        elem = wait_for_element_location(bot_id, browser, "id", eth_username_id)
+        if elem is None:
+            print(f"{bot_id} ==> Element not found, aborting")
+            return
+        elem.send_keys(username)
+        time.sleep(0.5)
+        browser.find_element_by_id(eth_password_id).send_keys(password)
+        browser.find_element_by_name(eth_login_name).click()
+    elif uni == 'Universität Zürich':
+        # Opening ETH Login Page
+        print(f"{bot_id} ==> Opening {uni} Login Page")
+        elem = wait_for_element_location(bot_id, browser, "id", uzh_username_id)
+        if elem is None:
+            print(f"{bot_id} ==> Element not found, aborting")
+            return
+        elem.send_keys(username)
+        time.sleep(0.5)
+        browser.find_element_by_id(uzh_password_id).send_keys(password)
+        browser.find_element_by_name(uzh_login_name).click()
+
     elem = wait_for_element_location(bot_id, browser, "id", lesson_register_element_id)
     if elem is None:
         print(f"{bot_id} ==> Element not found, aborting")
