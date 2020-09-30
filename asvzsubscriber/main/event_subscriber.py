@@ -59,7 +59,7 @@ def event_subscriber(event=None, password=None):
     # Init params
     url = event.url
     user = event.user
-    username = user.user_name
+    username = user.username
     event_id = url[-6:]
     bot_id = f"{username}:{event_id}"
     print(f"{bot_id} ==> Dispatch Bot")
