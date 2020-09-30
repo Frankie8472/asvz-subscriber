@@ -32,21 +32,17 @@ def check_time():
             event = event_list[0]
             event_list = event_list[1:]
 
-            user = event.user
-            username = user.username
-            url = event.url
             ASVZ_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
             with open(os.path.join(ASVZ_DIR, 'key.lock'), 'r') as key_file:
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
-            password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
+            password = f.decrypt(bytes(event.user.first_name, 'utf-8')).decode('utf-8')
             pool_event.append(event)
-            pool_username.append(username)
             pool_pw.append(password)
         else:
             break
 
     if pool_event:
         pool = ProcessPool(nodes=10)
-        pool.map(event_subscriber, pool_event, pool_username, pool_pw)
+        pool.map(event_subscriber, pool_event, pool_pw)
     return
