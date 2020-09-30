@@ -106,7 +106,7 @@ def event_subscriber(event=None, username=None, password=None):
         print(f"{bot_id} ==> Element not found, aborting")
         return
 
-    uni = event.last_name
+    uni = user.last_name
     elem.send_keys(uni)
     time.sleep(1)
     browser.find_element_by_name(institution_submit_name).click()
