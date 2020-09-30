@@ -3,7 +3,8 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.options import Options as Firefox_options
+from selenium.webdriver.chrome.options import Options as Chrome_options
 
 
 def into_the_vortex(firstname=''):
@@ -35,9 +36,14 @@ def surfin_the_vortex(url):
     lesson_register_element_id = 'eventDetails'
 
     # Init browser
-    firefox_options = Options()
-    firefox_options.headless = True
-    browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
+    # firefox_options = Firefox_options()
+    # firefox_options.headless = True
+    # browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
+
+    chromedriver_path = os.path.join(Path(__file__).resolve().parent.parent.parent.parent.parent, 'chromedriver')
+    chrome_options = Chrome_options()
+    chrome_options.headless = True
+    browser = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
 
     # Opening lesson page
     print(f"{bot_id} ==> Opening Lesson Page")
