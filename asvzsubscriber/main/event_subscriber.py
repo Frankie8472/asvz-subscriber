@@ -124,7 +124,12 @@ def event_subscriber(event=None, password=None):
             return
         elem.send_keys(username)
         time.sleep(0.5)
-        browser.find_element_by_id(eth_password_id).send_keys(password)
+        elem = browser.find_element_by_id(eth_password_id)
+        try:
+            elem.send_keys(password)
+        except ValueError:
+            print(f"{bot_id} ==> Wrong password, stupid! Aborting")
+            return
         browser.find_element_by_name(eth_login_name).click()
     elif uni == 'Universität Zürich':
         # Opening ETH Login Page
