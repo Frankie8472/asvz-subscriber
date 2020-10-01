@@ -151,6 +151,7 @@ def register(request):
                 key = bytes(key_file.read(), 'utf-8')
             f = Fernet(key)
             user.first_name = f.encrypt(bytes(form.cleaned_data.get('password1'), 'utf-8')).decode('utf-8')
+            user.last_name = 'ETH Zürich'
             user.save()
             user.refresh_from_db()
             username = form.cleaned_data.get('username')
