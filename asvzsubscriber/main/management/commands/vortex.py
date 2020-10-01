@@ -3,8 +3,7 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options as Firefox_options
-from selenium.webdriver.chrome.options import Options as Chrome_options
+from selenium.webdriver.firefox.options import Options
 
 
 def into_the_vortex(firstname=''):
@@ -16,42 +15,11 @@ def into_the_vortex(firstname=''):
     print(password)
 
 
-def surfin_the_vortex(url):
-    # Init params
-    username = 'garry'
-    event_id = url[-6:]
-    bot_id = f"{username}:{event_id}"
-    print(f"{bot_id} ==> Dispatch Bot")
-
-    asvzlogin_class = "btn-default"
-    aailogin_name = 'provider'
-    institution_selection_id = 'userIdPSelection_iddtext'
-    institution_submit_name = 'Select'
-    eth_username_id = 'username'
-    uzh_username_id = 'username'
-    eth_password_id = 'password'
-    uzh_password_id = 'password'
-    eth_login_name = '_eventId_proceed'
-    uzh_login_name = '_eventId_proceed'
-    lesson_register_element_id = 'eventDetails'
-
-    # Init browser
-    firefox_options = Firefox_options()
-    firefox_options.headless = True
-    firefox_options.add_argument("--disable-gpu")
-    browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
-
-    # chromedriver_path = os.path.join(Path(__file__).resolve().parent.parent.parent.parent.parent, 'chromedriver')
-    # chrome_options = Chrome_options()
-    # chrome_options.headless = True
-    # chrome_options.add_argument("disable-gpu")
-    #browser = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options)
-
-    # Opening lesson page
-    print(f"{bot_id} ==> Opening Lesson Page")
-    browser.get(url)
+def surfin_the_vortex():
+    pass
 
 
 if __name__ == "__main__":
-    #into_the_vortex('')
-    surfin_the_vortex('https://schalter.asvz.ch/tn/lessons/142303')
+    # into_the_vortex()
+    # surfin_the_vortex()
+    pass
