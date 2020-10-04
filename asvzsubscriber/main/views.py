@@ -285,7 +285,7 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     if sauna:
         events_to_be_kept = []
         for event in data['results']:
-            if event['title'] == "Wellness-Zone":
+            if event['title'].startswith("Wellness-Zone"):
                 events_to_be_kept.append(event)
         data['results'] = events_to_be_kept
     return data, default_data
