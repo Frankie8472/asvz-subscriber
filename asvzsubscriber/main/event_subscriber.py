@@ -200,3 +200,5 @@ def event_subscriber(event=None, password=None):
     if not (event is None):
         print(f"{bot_id} ==> Deleting Event")
         event.delete()
+
+    browser.quit()
