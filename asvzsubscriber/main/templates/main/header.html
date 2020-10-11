@@ -30,6 +30,17 @@
         </div>
     </nav>
 
+    <ul class="sidenav" id="mobile-demo">
+        {% if user.is_authenticated %}
+            <li><a href="/">Home</a></li>
+            <li><a href="/account">{{ user.username }}</a></li>
+            <li><a href="/logout">Logout</a></li>
+        {% else %}
+            <li><a href="/register">Register</a></li>
+            <li><a href="/login">Login</a></li>
+        {% endif %}
+    </ul>
+
     {% if messages %}
         {% for message in messages %}
             {% if message.tags == 'success'%}
