@@ -1,5 +1,7 @@
 <head>
     {% load static %}
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- JS -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- Compiled and minified CSS -->
@@ -14,6 +16,7 @@
     <nav class="blue">
         <div class="nav-wrapper">
             <a href="/" class="brand-logo center">ASVZ Subscriber Automation Tool</a>
+            <a href="/" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 {% if user.is_authenticated %}
                     <li><a href="/">Home</a></li>
@@ -43,4 +46,10 @@
 
     {% block content %}
     {% endblock %}
+
+    <script>
+        $(document).ready(function(){
+            $('.sidenav').sidenav();
+        });
+    </script>
 </body>
