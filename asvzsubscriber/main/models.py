@@ -12,7 +12,7 @@ class ASVZEvent(models.Model):
     event_start_date: DateTimeField = models.DateTimeField()
     register_start_date: DateTimeField = models.DateTimeField()
     url: URLField = models.URLField()
-    niveau_short_name: CharField = models.CharField()
+    niveau_short_name: CharField = models.CharField(max_length=100)
 
     class Meta:
         unique_together = ("user", "url")
