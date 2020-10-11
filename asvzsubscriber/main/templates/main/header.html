@@ -13,22 +13,26 @@
 </head>
 
 <body>
-    <nav class="blue">
-        <div class="nav-wrapper">
-            <a href="/" class="brand-logo center">ASVZ Subscriber Automation Tool</a>
-            <a href="/" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-                {% if user.is_authenticated %}
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/account">{{ user.username }}</a></li>
-                    <li><a href="/logout">Logout</a></li>
-                {% else %}
-                    <li><a href="/register">Register</a></li>
-                    <li><a href="/login">Login</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
+    <div class="navbar-fixed">
+        <nav class="blue">
+            <div class="nav-wrapper">
+                <a href="/" class="brand-logo center">
+                    <div style="height: 56px; overflow: hidden;">ASVZ Subscriber and Validation Zealot</div>
+                </a>
+                <a href="/" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    {% if user.is_authenticated %}
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/account">{{ user.username }}</a></li>
+                        <li><a href="/logout">Logout</a></li>
+                    {% else %}
+                        <li><a href="/register">Register</a></li>
+                        <li><a href="/login">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </div>
 
     <ul class="sidenav" id="mobile-demo">
         {% if user.is_authenticated %}
