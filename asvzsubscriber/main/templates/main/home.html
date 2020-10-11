@@ -8,7 +8,7 @@
         <div class="row">
 
             <!-- Events Selection -->
-            <div class="col s6">
+            <div class="col s6 m6">
                 <label>
                     <input type="checkbox"/>
                 </label>
@@ -21,12 +21,12 @@
             </div>
 
             <!-- Right Column -->
-            <div class="col s6">
+            <div class="col s6 m6">
                 <!--<form method="POST">-->
                     <!--{% csrf_token %}-->
                     <div class="row">
                         <!-- Sporttype -->
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <select multiple id='sporttype' name="sporttype">
                                 {% for type in sporttypes %}
                                     {% if type in selected_sporttypes %}
@@ -38,9 +38,8 @@
                             </select>
                             <label>Sporttype</label>
                         </div>
-
                         <!-- Facility -->
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <select multiple id='facility' name="facility">
                                 {% for facility in facilities %}
                                     {% if facility in selected_facilities %}
@@ -56,17 +55,17 @@
 
                     <div class="row">
                         <!-- Date and Time -->
-                        <div class="col s3">
+                        <div class="col s12 m3">
                             <label for="date">Date</label>
                             <input id="date" name="date" type="text" class="datepicker" value="{{ selected_date }}">
                         </div>
-                        <div class="col s3">
+                        <div class="col s12 m3">
                             <label for="time">Time</label>
                             <input id="time" name="time" type="text" class="timepicker" value="{{ selected_time }}">
                         </div>
 
                         <!-- Search Results -->
-                        <div class="col s3">
+                        <div class="col s12 m3">
                             <label>
                                 <label for="limit">Search Results:</label>
                                 <input id="limit" type="number" name="limit" min="0" max="300" value="{{ selected_limit }}">
@@ -74,7 +73,7 @@
                         </div>
 
                         <!-- Sauna Boolean -->
-                        <div class="col s3">
+                        <div class="col s12 m3">
                             <label for="sauna">
                                 <input id="sauna" name="sauna" type="checkbox" class="filled-in" {{ selected_sauna }}/>
                                 <span>Sauna</span>
@@ -88,7 +87,7 @@
 
                 <!-- Scheduled Events -->
                 <div class="row">
-                    <div class="col s12">
+                    <div class="col s12 m12">
                         <label>
                             <input type="checkbox"/>
                         </label>
