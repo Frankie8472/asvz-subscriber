@@ -14,7 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
+<body style="display: flex; min-height: 100vh; flex-direction: column;">
     <div class="navbar-fixed">
         <nav class="blue">
             <div class="nav-wrapper">
@@ -60,9 +60,28 @@
             {% endif %}
         {% endfor %}
     {% endif %}
+    <div style="flex: 1 0 auto;">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <footer class="page-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 s12">
+                    <p class="grey-text text-lighten-4">Buy your friendly neighbourhood SaunaLord a coffee to keep him awake and workin'! <3</p>
+                </div>
+                <div class="col l4 offset-l2 s12">
+                    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="saunalord" data-color="#df696e" data-emoji=""  data-font="Cookie" data-text="Buy him a coffee" data-outline-color="#fff" data-font-color="#fff" data-coffee-color="#fd0" ></script>
+                </div>
+            </div>
+        </div>
 
-    {% block content %}
-    {% endblock %}
+        <div class="footer-copyright">
+            <div class="container">
+                Made by your friendly neighbourhood SaunaLord © 2020
+            </div>
+        </div>
+    </footer>
 
     <script>
         $(document).ready(function(){
