@@ -1,0 +1,31 @@
+{% extends 'main/header.html' %}
+
+{% block content %}
+<div class="container">
+    <table class="striped">
+        <thead>
+        <tr>
+            <th>Titel</th>
+            <th>Sportart</th>
+            <th>Datum</th>
+            <th>Ort</th>
+            <th>Platz-Nr.</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for obj in json_obj %}
+        <tr>
+            <td> {{obj.lessonName}} </td>
+            <td> {{obj.sportName}} </td>
+            <td> {{obj.lessonTime}} </td>
+            <td> {{obj.location}} </td>
+            <td> {{obj.placeNumber}} </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+
