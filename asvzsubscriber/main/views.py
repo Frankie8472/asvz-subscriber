@@ -26,7 +26,7 @@ def enrollments(request):
         new_list.append({
             "lessonName": obj['lessonName'],
             "sportName": obj['sportName'],
-            "lessonTime": f"{obj['lessonStart'][8:10]}.{obj['lessonStart'][5:7]} {obj['lessonStart'][11:16]} - {obj['lessonEnd'][11:16]}",
+            "lessonTime": f"{obj['lessonStart'][8:10]}.{obj['lessonStart'][5:7]}.{obj['lessonStart'][0:4]} {obj['lessonStart'][11:16]} - {obj['lessonEnd'][11:16]}",
             "location": obj['location']['De'],
             "placeNumber": obj['placeNumber']
         })
