@@ -13,8 +13,29 @@ import json
 from datetime import datetime, timezone, timedelta
 from cryptography.fernet import Fernet
 
+from .asvz_crawler import get_enrollments
 from .forms import EventForm
 from .models import ASVZEvent
+
+
+def enrollments(request):
+    user = request.user
+    json_obj = get_enrollments(user)
+    new_list = list()
+    for obj in json_obj['data']:
+        new_list.append({
+            "lessonName": obj['lessonName'],
+            "sportName": obj['sportName'],
+            "lessonTime": f"{obj['lessonStart'][8:10]}.{obj['lessonStart'][5:7]}.{obj['lessonStart'][0:4]} {obj['lessonStart'][11:16]} - {obj['lessonEnd'][11:16]}",
+            "location": obj['location']['De'],
+            "placeNumber": obj['placeNumber']
+        })
+
+    return render(
+        request,
+        'main/enrollments.html',
+        {'json_obj': new_list}
+    )
 
 
 def load_events(data, user):
