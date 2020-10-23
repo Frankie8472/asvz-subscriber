@@ -1,7 +1,7 @@
-import os
-from pathlib import Path
-
 import pytz
+from django.contrib.auth.models import User
+from pathos.multiprocessing import ProcessPool
+
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
@@ -11,25 +11,27 @@ from django.utils.safestring import mark_safe
 import urllib.request
 import json
 from datetime import datetime, timezone, timedelta
-from cryptography.fernet import Fernet
 
-from .asvz_crawler import get_enrollments
+from .asvz_crawler import get_enrollments, encrypt_passphrase, update_bearer_token
 from .forms import EventForm
 from .models import ASVZEvent
 
 
 def enrollments(request):
     user = request.user
+    update_bearer_token_thread_dispatch(user)
     json_obj = get_enrollments(user)
     new_list = list()
-    for obj in json_obj['data']:
-        new_list.append({
-            "lessonName": obj['lessonName'],
-            "sportName": obj['sportName'],
-            "lessonTime": f"{obj['lessonStart'][8:10]}.{obj['lessonStart'][5:7]}.{obj['lessonStart'][0:4]} {obj['lessonStart'][11:16]} - {obj['lessonEnd'][11:16]}",
-            "location": obj['location']['De'],
-            "placeNumber": obj['placeNumber']
-        })
+
+    if not json_obj is None:
+        for obj in json_obj['data']:
+            new_list.append({
+                "lessonName": obj['lessonName'],
+                "sportName": obj['sportName'],
+                "lessonTime": f"{obj['lessonStart'][8:10]}.{obj['lessonStart'][5:7]}.{obj['lessonStart'][0:4]} {obj['lessonStart'][11:16]} - {obj['lessonEnd'][11:16]}",
+                "location": obj['location']['De'],
+                "placeNumber": obj['placeNumber']
+            })
 
     return render(
         request,
@@ -38,30 +40,13 @@ def enrollments(request):
     )
 
 
-def load_events(data, user):
-    events_scheduled = [event for event in ASVZEvent.objects.order_by('register_start_date').filter(user=user)]
-    events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
-
-    events = [(
-        event['url'],
-        mark_safe(
-            f"<span>{datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']} | {event['niveau_short_name']} | {event['title']} | {event['location']}</span>")
-    ) for event in data['results'] if event['url'] not in events_scheduled_url]
-
-    events_scheduled_mod = [(
-        event.url,
-        mark_safe(
-            f"<span>{event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name} | {event.niveau_short_name} | {event.title} | {event.location}</span>")
-    ) for event in events_scheduled]
-    return events, events_scheduled, events_scheduled_mod
-
-
 # Create your views here.
 def home(request):
     if not request.user.is_authenticated:
         return redirect('main:login')
 
     user = request.user
+    update_bearer_token_thread_dispatch(user)
 
     selected_sporttypes = []
     selected_facilities = []
@@ -167,11 +152,7 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            ASVZ_DIR = Path(__file__).resolve().parent.parent.parent
-            with open(os.path.join(ASVZ_DIR, 'key.lock'), 'r') as key_file:
-                key = bytes(key_file.read(), 'utf-8')
-            f = Fernet(key)
-            user.first_name = f.encrypt(bytes(form.cleaned_data.get('password1'), 'utf-8')).decode('utf-8')
+            user.first_name = encrypt_passphrase(form.cleaned_data.get('password1'))
             user.last_name = 'ETH Zürich'
             user.save()
             user.refresh_from_db()
@@ -233,16 +214,14 @@ def account(request):
     if not request.user.is_authenticated:
         return redirect('main:home')
 
+    user = request.user
+    update_bearer_token_thread_dispatch(user)
+
     if request.method == 'POST':
-        form = PasswordChangeForm(user=request.user, data=request.POST)
+        form = PasswordChangeForm(user=user, data=request.POST)
         if form.is_valid():
             form.save()
-            user = request.user
-            ASVZ_DIR = Path(__file__).resolve().parent.parent.parent
-            with open(os.path.join(ASVZ_DIR, 'key.lock'), 'r') as key_file:
-                key = bytes(key_file.read(), 'utf-8')
-            f = Fernet(key)
-            user.first_name = f.encrypt(bytes(form.cleaned_data.get('new_password1'), 'utf-8')).decode('utf-8')
+            user.first_name = encrypt_passphrase(form.cleaned_data.get('new_password1'))
             user.save()
             user.refresh_from_db()
             update_session_auth_hash(request, form.user)
@@ -258,6 +237,24 @@ def account(request):
         'main/account.html',
         {'form': form}
     )
+
+
+def load_events(data, user):
+    events_scheduled = [event for event in ASVZEvent.objects.order_by('register_start_date').filter(user=user)]
+    events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
+
+    events = [(
+        event['url'],
+        mark_safe(
+            f"<span>{datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']} | {event['niveau_short_name']} | {event['title']} | {event['location']}</span>")
+    ) for event in data['results'] if event['url'] not in events_scheduled_url]
+
+    events_scheduled_mod = [(
+        event.url,
+        mark_safe(
+            f"<span>{event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name} | {event.niveau_short_name} | {event.title} | {event.location}</span>")
+    ) for event in events_scheduled]
+    return events, events_scheduled, events_scheduled_mod
 
 
 def update_url(show_results=15, sporttypes=None, facilities=None, date=None, time=None, sauna=False):
@@ -310,3 +307,9 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
                 events_to_be_kept.append(event)
         data['results'] = events_to_be_kept
     return data, default_data
+
+
+def update_bearer_token_thread_dispatch(user: User):
+    pool = ProcessPool(nodes=1)
+    pool.map(update_bearer_token, [User.objects.get(username=user.username)])
+    return
