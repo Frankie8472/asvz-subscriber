@@ -4,7 +4,7 @@ import pytz
 import requests
 import time
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from cryptography.fernet import Fernet
 from django.contrib.auth.models import User
 from selenium import webdriver
@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from .models import ASVZEvent
+from .models import ASVZEvent, BearerToken
 
 
 def subscribe_to_event(event: ASVZEvent = None):
@@ -79,6 +79,9 @@ def subscribe_to_event(event: ASVZEvent = None):
 
 
 def get_enrollments(user: User = None):
+    if user.username == 'admin':
+        return None
+
     # Init params
     bearer = get_bearer_token(user=user)
     current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
@@ -103,18 +106,47 @@ def get_enrollments(user: User = None):
 
 
 def get_bearer_token(user: User = None, request_id=''):
-    # Init params
+    if user.username == 'admin':
+        return None
 
+    return decrypt_passphrase(update_bearer_token(user, request_id).bearerToken)
+
+
+def update_bearer_token(user: User = None, request_id=''):
+    if user.username == 'admin':
+        return None
+
+    current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+    try:
+        bearerToken = BearerToken.objects.get(user=user)
+    except BearerToken.DoesNotExist:
+        bearerToken = BearerToken.objects.create(
+            user=user,
+            bearerToken='',
+            valid_until=current_time - timedelta(hours=3),
+            is_updating=False
+        )
+
+    if bearerToken.is_updating:
+        time.sleep(2)
+        return update_bearer_token(user, request_id)
+
+    elif (bearerToken.valid_until - current_time).total_seconds() > 0:
+        return bearerToken
+
+    else:
+        bearerToken.valid_until = current_time + timedelta(hours=2)
+        bearerToken.is_updating = True
+        bearerToken.save()
+
+    # Update bearer token
+    # Init params
     url = "https://schalter.asvz.ch/tn/my-lessons"
     username = user.username
     university = user.last_name
     bot_id = f"{username}:{request_id}"
 
-    ASVZ_DIR = Path(__file__).resolve().parent.parent.parent
-    with open(os.path.join(ASVZ_DIR, 'key.lock'), 'r') as key_file:
-        key = bytes(key_file.read(), 'utf-8')
-    f = Fernet(key)
-    password = f.decrypt(bytes(user.first_name, 'utf-8')).decode('utf-8')
+    password = decrypt_passphrase(user.first_name)
 
     print(f"{bot_id} ==> Dispatch Bot")
 
@@ -190,7 +222,10 @@ def get_bearer_token(user: User = None, request_id=''):
             break
 
     browser.quit()
-    return bearer
+    bearerToken.bearerToken = encrypt_passphrase(bearer)
+    bearerToken.is_updating = False
+    bearerToken.save()
+    return bearerToken
 
 
 def wait_for_element_location(bot_id, browser, search_art="class", search_name="", delay=10, interval=0.5):
@@ -221,3 +256,17 @@ def wait_for_element_location(bot_id, browser, search_art="class", search_name="
 def unix_time_millis(dt):
     return round((dt - datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)).total_seconds() * 1000)
 
+
+def get_cryptor():
+    ASVZ_DIR = Path(__file__).resolve().parent.parent.parent
+    with open(os.path.join(ASVZ_DIR, 'key.lock'), 'r') as key_file:
+        key = bytes(key_file.read(), 'utf-8')
+    return Fernet(key)
+
+
+def decrypt_passphrase(passphrase):
+    return get_cryptor().decrypt(bytes(passphrase, 'utf-8')).decode('utf-8')
+
+
+def encrypt_passphrase(passphrase):
+    return get_cryptor().encrypt(bytes(passphrase, 'utf-8')).decode('utf-8')
