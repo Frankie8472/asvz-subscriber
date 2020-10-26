@@ -23,7 +23,7 @@ def enrollments(request):
     json_obj = get_enrollments(user)
     new_list = list()
 
-    if not json_obj is None:
+    if json_obj is not None:
         for obj in json_obj['data']:
             new_list.append({
                 "lessonName": obj['lessonName'],
@@ -32,6 +32,8 @@ def enrollments(request):
                 "location": obj['location']['De'],
                 "placeNumber": obj['placeNumber']
             })
+
+        new_list.sort()
 
     return render(
         request,
