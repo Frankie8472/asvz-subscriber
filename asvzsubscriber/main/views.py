@@ -47,7 +47,6 @@ def home(request):
 
     user = request.user
     update_bearer_token_thread_dispatch(user)
-
     selected_sporttypes = []
     selected_facilities = []
     tomorrow = datetime.now(tz=pytz.timezone('Europe/Zurich')) + timedelta(days=1)
@@ -311,5 +310,5 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
 
 def update_bearer_token_thread_dispatch(user: User):
     pool = ProcessPool(nodes=1)
-    pool.map(update_bearer_token, [User.objects.get(username=user.username)])
+    pool.amap(update_bearer_token, [User.objects.get(username=user.username)])
     return
