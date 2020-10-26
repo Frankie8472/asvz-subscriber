@@ -32,8 +32,7 @@ def enrollments(request):
                 "location": obj['location']['De'],
                 "placeNumber": obj['placeNumber']
             })
-
-        new_list.sort()
+        new_list = sorted(new_list, key=lambda i: i['lessonTime'])
 
     return render(
         request,
