@@ -23,7 +23,7 @@ class ASVZEvent(models.Model):
 
 class BearerToken(models.Model):
     user: OneToOneField = models.OneToOneField(User, on_delete=models.CASCADE)
-    bearerToken: CharField = models.CharField(max_length=255)
+    bearerToken: CharField = models.CharField(max_length=4000)
     valid_until: DateTimeField = models.DateTimeField()
     is_updating: BooleanField = models.BooleanField(default=False)
 
