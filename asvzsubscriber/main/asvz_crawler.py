@@ -58,7 +58,7 @@ def subscribe_to_event(event: ASVZEvent = None):
             ).status_code
             print(f"{bot_id} ==> {ret}")
 
-        except ValueError:
+        except:
             pass
 
         step = 0.1
