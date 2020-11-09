@@ -198,6 +198,10 @@ def update_bearer_token(user: User = None, request_id=''):
         elem.send_keys(username)
         browser.find_element_by_id(eth_password_id).send_keys(password)
         browser.find_element_by_name(eth_login_name).click()
+        elem = wait_for_element_location(bot_id, browser, "id", "corp")
+        if elem is not None:
+            browser.find_element_by_name("_eventId_proceed").click()
+
     elif university == 'Universität Zürich':
         # Opening ETH Login Page
         elem = wait_for_element_location(bot_id, browser, "id", uzh_username_id)
