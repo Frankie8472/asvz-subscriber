@@ -12,7 +12,7 @@ import urllib.request
 import json
 from datetime import datetime, timezone, timedelta
 
-from .asvz_crawler import get_enrollments, encrypt_passphrase, update_bearer_token
+from .asvz_crawler import ASVZCrawler, encrypt_passphrase
 from .forms import EventForm
 from .models import ASVZEvent
 
@@ -20,7 +20,7 @@ from .models import ASVZEvent
 def enrollments(request):
     user = request.user
     update_bearer_token_thread_dispatch(user)
-    json_obj = get_enrollments(user)
+    json_obj = ASVZCrawler(user=user).get_enrollments()
     new_list = list()
 
     if json_obj is not None:
@@ -311,5 +311,5 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
 
 def update_bearer_token_thread_dispatch(user: User):
     pool = ProcessPool(nodes=1)
-    pool.amap(update_bearer_token, [User.objects.get(username=user.username)])
+    pool.apipe(ASVZCrawler(user=user).update_bearer_token)
     return
