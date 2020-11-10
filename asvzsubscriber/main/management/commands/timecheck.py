@@ -2,7 +2,7 @@ import pytz
 from datetime import datetime, timezone
 from pathos.multiprocessing import ProcessPool
 from django.core.management import BaseCommand
-from main.asvz_crawler import subscribe_to_event
+from main.asvz_crawler import subscribe_to_event_threaded_handler
 from main.models import ASVZEvent
 
 
@@ -32,5 +32,5 @@ def check_time():
 
     if pool_event:
         pool = ProcessPool(nodes=10)
-        pool.map(subscribe_to_event, pool_event)
+        pool.map(subscribe_to_event_threaded_handler, pool_event)
     return
