@@ -31,7 +31,6 @@ def check_time():
             break
     print(pool_event)
     if pool_event:
-        print(f"========= In  =========")
         pool = ProcessPool(nodes=10)
         pool.map(ASVZCrawler, pool_event)
     print(f"========= Finished  =========")
