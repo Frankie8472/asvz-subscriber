@@ -311,5 +311,5 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
 
 def update_bearer_token_thread_dispatch(user: User):
     pool = ProcessPool(nodes=1)
-    pool.apipe(ASVZCrawler(user=user).update_bearer_token)
+    pool.amap(ASVZCrawler, [user])
     return
