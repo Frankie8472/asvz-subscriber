@@ -29,7 +29,6 @@ def check_time():
             pool_event.append(event)
         else:
             break
-    print(pool_event)
     if pool_event:
         pool = ProcessPool(nodes=10)
         pool.map(ASVZCrawler, pool_event)
