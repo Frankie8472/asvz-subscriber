@@ -20,7 +20,7 @@ from .models import ASVZEvent
 def enrollments(request):
     user = request.user
     update_bearer_token_thread_dispatch(user)
-    json_obj = ASVZCrawler(user=user).get_enrollments()
+    json_obj = ASVZCrawler(user).get_enrollments()
     new_list = list()
 
     if json_obj is not None:
