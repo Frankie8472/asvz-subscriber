@@ -34,35 +34,30 @@ def _unix_time_millis(dt):
     return round((dt - datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)).total_seconds() * 1000)
 
 
-def subscribe_to_event_threaded_handler(user=''):
-    ASVZCrawler(user=user).subscribe_to_event()
-    return
-
 class ASVZCrawler:
-    def __init__(self, user: User = None, event: ASVZEvent = None):
-        if user is None and event is None:
+    def __init__(self, obj=None):
+        if (obj is None) or (not isinstance(obj, ASVZEvent) and not isinstance(obj, User)):
             self.BOT_ID = f"{'ERROR'}"
-            self._log("No user and no event given", error=True)
+            self._log("No user or no event given", error=True)
             return
 
-        if user is not None and event is not None:
-            self.BOT_ID = f"{'ERROR'}"
-            self._log("User and event given", error=True)
-            return
+        self.EVENT = None
+        self.USER = obj
+        self.REQUEST_ID = ''
 
-        self.EVENT = event
-        self.USER = user
-        request_id = ''
-
-        if self.EVENT is not None:
+        if isinstance(obj, ASVZEvent):
+            self.EVENT: ASVZEvent = obj
             self.USER = User.objects.get(username=self.EVENT.user)
-            request_id = self.EVENT.url[-6:]
+            self.REQUEST_ID = self.EVENT.url[-6:]
 
         self.USERNAME = self.USER.username
-        self.BOT_ID = f"{self.USERNAME}:{request_id}"
+        self.BOT_ID = f"{self.USERNAME}:{self.REQUEST_ID}"
         self.BEARER = self._get_bearer_token()
 
-    def subscribe_to_event(self):
+        if self.EVENT is not None:
+            self._subscribe_to_event()
+
+    def _subscribe_to_event(self):
         if self.EVENT is None:
             self._log('Event is None, cannot subscribe if no event given', error=True)
             return
@@ -103,6 +98,7 @@ class ASVZCrawler:
                 self._log(f"Status Code: {ret}")
 
             except:
+                self._log(f"Request failed", error=True)
                 pass
 
             step = 0.1
