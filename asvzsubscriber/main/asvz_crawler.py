@@ -286,8 +286,8 @@ class ASVZCrawler:
             except:
                 cnt += 1
                 self._log("Loading took too much time! Trying again...", error=True)
-                time.sleep(5)
-                if cnt < 5:
+                time.sleep(2)
+                if cnt < 2:
                     pass
                 else:
                     return None
