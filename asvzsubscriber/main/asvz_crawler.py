@@ -205,6 +205,7 @@ class ASVZCrawler:
 
         if self._wait_for_element_location(browser, "name", aailogin_name) is None:
             self._log("Could not open page in due time, aborting", error=True)
+            bearerToken.delete()
             return None
         browser.find_element_by_name(aailogin_name).click()
 
@@ -212,6 +213,7 @@ class ASVZCrawler:
         self._log("Opening AAI Login Page")
         if self._wait_for_element_location(browser, "id", institution_selection_id) is None:
             self._log("Could not open page in due time, aborting", error=True)
+            bearerToken.delete()
             return None
 
         self._log("Selecting Institution")
@@ -223,7 +225,8 @@ class ASVZCrawler:
             # Opening ETH Login Page
             if self._wait_for_element_location(browser, "id", eth_username_id) is None:
                 self._log("Could not open page in due time, aborting", error=True)
-                return
+                bearerToken.delete()
+                return None
             browser.find_element_by_id(eth_username_id).send_keys(self.USERNAME)
             browser.find_element_by_id(eth_password_id).send_keys(password)
             browser.find_element_by_name(eth_login_name).click()
@@ -232,7 +235,8 @@ class ASVZCrawler:
             # Opening ETH Login Page
             if self._wait_for_element_location(browser, "id", uzh_username_id) is None:
                 self._log("Could not open page in due time, aborting", error=True)
-                return
+                bearerToken.delete()
+                return None
             browser.find_element_by_id(uzh_username_id).send_keys(self.USERNAME)
             browser.find_element_by_id(uzh_password_id).send_keys(password)
             browser.find_element_by_name(uzh_login_name).click()
@@ -241,12 +245,14 @@ class ASVZCrawler:
             self._log("Could not open last page, checking for questionnaire")
             if self._wait_for_element_location(browser, "id", eth_questionnaire_id) is None:
                 self._log("Questionnaire not found, aborting", error=True)
-                return
+                bearerToken.delete()
+                return None
             self._log("Questionnaire found, accepting")
             browser.find_element_by_name("_eventId_proceed").click()
             if self._wait_for_element_location(browser, "class", final_page_identifier_class) is None:
                 self._log("Last page still not found, aborting", error=True)
-                return
+                bearerToken.delete()
+                return None
 
         self._log("Last page reached, fetching bearer token")
 
