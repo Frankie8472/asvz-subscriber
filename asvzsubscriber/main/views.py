@@ -66,8 +66,8 @@ def home(request):
         selected_sauna = 'checked' if request.POST.get('sauna') == 'on' else ''
 
         if selected_sauna == 'checked':
-            selected_limit = 200
-            selected_sporttypes = ['Specials']
+            selected_limit = 50
+            selected_sporttypes = ['Wellness / Sauna']
             selected_facilities = ['Sport Center Hönggerberg']
 
     data, default_data = update_url(
@@ -300,12 +300,6 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     for event in events_to_be_removed:
         data['results'].remove(event)
 
-    if sauna:
-        events_to_be_kept = []
-        for event in data['results']:
-            if event['title'].startswith("Wellness-Zone"):
-                events_to_be_kept.append(event)
-        data['results'] = events_to_be_kept
     return data, default_data
 
 
