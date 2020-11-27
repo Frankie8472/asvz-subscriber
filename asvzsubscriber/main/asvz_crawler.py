@@ -117,7 +117,7 @@ class ASVZCrawler:
         return
 
     def get_enrollments(self):
-        if self.USERNAME == 'admin':
+        if self.USERNAME == 'admin' or self.USERNAME == 'test':
             return None
 
         # Init params
@@ -142,13 +142,13 @@ class ASVZCrawler:
         return ret
 
     def _get_bearer_token(self):
-        if self.USERNAME == 'admin':
+        if self.USERNAME == 'admin' or self.USERNAME == 'test':
             return None
 
         return _decrypt_passphrase(self.update_bearer_token().bearerToken)
 
     def update_bearer_token(self):
-        if self.USERNAME == 'admin':
+        if self.USERNAME == 'admin' or self.USERNAME == 'test':
             return None
 
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
