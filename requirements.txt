@@ -1,5 +1,5 @@
 pip>=20.3.3
-setuptools>=51.1.0
+setuptools>=40.8.0
 pathos>=0.2.7
 cryptography>=3.3.1
 pytz>=2020.5
