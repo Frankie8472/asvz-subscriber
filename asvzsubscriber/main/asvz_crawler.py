@@ -41,6 +41,10 @@ class ASVZCrawler:
             self._log("No user or no event given", error=True)
             return
 
+        self.CLASS = "class"
+        self.NAME = "name"
+        self.ID = "id"
+
         self.EVENT = None
         self.USER = obj
         self.REQUEST_ID = ''
@@ -157,6 +161,7 @@ class ASVZCrawler:
         try:
             bearerToken = BearerToken.objects.get(user=self.USER)
         except:
+            self._log("Create new BearerToken")
             bearerToken = BearerToken.objects.create(
                 user=self.USER,
                 bearerToken='',
@@ -167,10 +172,9 @@ class ASVZCrawler:
         if bearerToken.is_updating:
             time.sleep(2)
             return self.update_bearer_token()
-        elif (bearerToken.valid_until - current_time).total_seconds() > 0:
+        elif bearerToken.bearerToken != '' and (bearerToken.valid_until - current_time).total_seconds() > 0:
             return bearerToken
         else:
-            bearerToken.valid_until = current_time + timedelta(hours=2)
             bearerToken.is_updating = True
             bearerToken.save()
 
@@ -190,7 +194,7 @@ class ASVZCrawler:
         uzh_password_id = 'password'
         eth_login_name = '_eventId_proceed'
         uzh_login_name = '_eventId_proceed'
-        eth_questionnaire_id = "corp"
+        questionnaire_name = '_eventId_proceed'
         final_page_identifier_class = 'table'
 
         # Init browser
@@ -199,97 +203,89 @@ class ASVZCrawler:
         firefox_options.add_argument("--disable-gpu")
         browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
 
-        # Opening ASVZ login page
-        self._log("Opening ASVZ Login Page")
-        browser.get(url)
+        try:
+            # Opening ASVZ login page
+            self._log("Opening ASVZ Login Page")
+            browser.get(url)
 
-        if self._wait_for_element_location(browser, "name", aailogin_name) is None:
-            self._log("Could not open page in due time, aborting", error=True)
-            bearerToken.delete()
-            return None
-        browser.find_element_by_name(aailogin_name).click()
+            if self._wait_for_element_location(browser, self.NAME, aailogin_name) is None:
+                self._log("Could not open page in due time, aborting", error=True)
+                raise
+            browser.find_element_by_name(aailogin_name).click()
 
-        # Opening AAI login page
-        self._log("Opening AAI Login Page")
-        if self._wait_for_element_location(browser, "id", institution_selection_id) is None:
-            self._log("Could not open page in due time, aborting", error=True)
-            bearerToken.delete()
-            return None
+            # Opening AAI login page
+            self._log("Opening AAI Login Page")
+            if self._wait_for_element_location(browser, self.ID, institution_selection_id) is None:
+                self._log("Could not open page in due time, aborting", error=True)
+                raise
 
-        self._log("Selecting Institution")
-        browser.find_element_by_id(institution_selection_id).send_keys(university)
-        browser.find_element_by_name(institution_submit_name).click()
+            self._log("Selecting Institution")
+            browser.find_element_by_id(institution_selection_id).send_keys(university)
+            browser.find_element_by_name(institution_submit_name).click()
 
-        self._log(f"Opening {university} Login Page")
-        if university == 'ETH Zürich':
-            # Opening ETH Login Page
-            if self._wait_for_element_location(browser, "id", eth_username_id) is None:
-                if self._wait_for_element_location(browser, "name", eth_login_name) is None:
+            self._log(f"Opening {university} Login Page")
+            if university == 'ETH Zürich':
+                # Opening ETH Login Page
+                if self._wait_for_element_location(browser, self.ID, eth_username_id) is None:
                     self._log("Could not open page in due time, aborting", error=True)
-                    bearerToken.delete()
-                    return None
+                    raise
+                browser.find_element_by_id(eth_username_id).send_keys(self.USERNAME)
+                browser.find_element_by_id(eth_password_id).send_keys(password)
                 browser.find_element_by_name(eth_login_name).click()
-                if self._wait_for_element_location(browser, "id", eth_username_id) is None:
-                    self._log("Could not open page in due time, aborting", error=True)
-                    bearerToken.delete()
-                    return None
-            browser.find_element_by_id(eth_username_id).send_keys(self.USERNAME)
-            browser.find_element_by_id(eth_password_id).send_keys(password)
-            browser.find_element_by_name(eth_login_name).click()
 
-        elif university == 'Universität Zürich':
-            # Opening ETH Login Page
-            if self._wait_for_element_location(browser, "id", uzh_username_id) is None:
-                if self._wait_for_element_location(browser, "name", uzh_login_name) is None:
+            elif university == 'Universität Zürich':
+                # Opening ETH Login Page
+                if self._wait_for_element_location(browser, self.ID, uzh_username_id) is None:
                     self._log("Could not open page in due time, aborting", error=True)
-                    bearerToken.delete()
-                    return None
+                    raise
+                browser.find_element_by_id(uzh_username_id).send_keys(self.USERNAME)
+                browser.find_element_by_id(uzh_password_id).send_keys(password)
                 browser.find_element_by_name(uzh_login_name).click()
-                if self._wait_for_element_location(browser, "id", eth_username_id) is None:
-                    self._log("Could not open page in due time, aborting", error=True)
-                    bearerToken.delete()
-                    return None
-            browser.find_element_by_id(uzh_username_id).send_keys(self.USERNAME)
-            browser.find_element_by_id(uzh_password_id).send_keys(password)
-            browser.find_element_by_name(uzh_login_name).click()
+            else:
+                self._log("Corrupt university", error=True)
+                raise
 
-        if self._wait_for_element_location(browser, "class", final_page_identifier_class) is None:
-            self._log("Could not open last page, checking for questionnaire")
-            if self._wait_for_element_location(browser, "id", eth_questionnaire_id) is None:
-                self._log("Questionnaire not found, aborting", error=True)
-                bearerToken.delete()
-                return None
-            self._log("Questionnaire found, accepting")
-            browser.find_element_by_name("_eventId_proceed").click()
-            if self._wait_for_element_location(browser, "class", final_page_identifier_class) is None:
-                self._log("Last page still not found, aborting", error=True)
-                bearerToken.delete()
-                return None
+            if self._wait_for_element_location(browser, self.CLASS, final_page_identifier_class) is None:
+                self._log("Could not open last page, checking for questionnaire")
+                if self._wait_for_element_location(browser, self.NAME, questionnaire_name) is None:
+                    self._log("Questionnaire not found, aborting", error=True)
+                    raise
+                self._log("Questionnaire found, accepting")
+                browser.find_element_by_name("_eventId_proceed").click()
+                if self._wait_for_element_location(browser, self.CLASS, final_page_identifier_class) is None:
+                    self._log("Last page still not found, aborting", error=True)
+                    raise
 
-        self._log("Last page reached, fetching bearer token")
+            self._log("Last page reached, fetching bearer token")
 
-        # Get bearer token
-        bearer = None
-        for key, value in browser.execute_script("return localStorage").items():
-            if key.startswith("oidc.user"):
-                localStorage_json = json.loads(value)
-                bearer = localStorage_json['access_token']
-                break
+            # Get bearer token
+            bearer = None
+            for key, value in browser.execute_script("return localStorage").items():
+                if key.startswith("oidc.user"):
+                    localStorage_json = json.loads(value)
+                    bearer = localStorage_json['access_token']
+                    break
 
-        self._log("Encrypting and saving bearer token")
-        browser.quit()
-        bearerToken.bearerToken = encrypt_passphrase(bearer)
-        bearerToken.is_updating = False
-        bearerToken.save()
-        return bearerToken
+            if bearer is None:
+                self._log("BearerToken Not found in json", error=True)
+                raise
+
+            self._log("Encrypting and saving bearer token")
+            bearerToken.valid_until = current_time + timedelta(hours=2)
+            bearerToken.bearerToken = encrypt_passphrase(bearer)
+        finally:
+            browser.quit()
+            bearerToken.is_updating = False
+            bearerToken.save()
+            return bearerToken
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=0.5):
         cnt = 0
-        if search_art == "class":
+        if search_art == self.CLASS:
             search_option = By.CLASS_NAME
-        elif search_art == "name":
+        elif search_art == self.NAME:
             search_option = By.NAME
-        elif search_art == "id":
+        elif search_art == self.ID:
             search_option = By.ID
         else:
             self._log("Undefined search_art", error=True)
