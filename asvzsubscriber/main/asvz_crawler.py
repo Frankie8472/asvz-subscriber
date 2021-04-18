@@ -224,9 +224,15 @@ class ASVZCrawler:
         if university == 'ETH Zürich':
             # Opening ETH Login Page
             if self._wait_for_element_location(browser, "id", eth_username_id) is None:
-                self._log("Could not open page in due time, aborting", error=True)
-                bearerToken.delete()
-                return None
+                if self._wait_for_element_location(browser, "name", eth_login_name) is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    bearerToken.delete()
+                    return None
+                browser.find_element_by_name(eth_login_name).click()
+                if self._wait_for_element_location(browser, "id", eth_username_id) is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    bearerToken.delete()
+                    return None
             browser.find_element_by_id(eth_username_id).send_keys(self.USERNAME)
             browser.find_element_by_id(eth_password_id).send_keys(password)
             browser.find_element_by_name(eth_login_name).click()
@@ -234,9 +240,15 @@ class ASVZCrawler:
         elif university == 'Universität Zürich':
             # Opening ETH Login Page
             if self._wait_for_element_location(browser, "id", uzh_username_id) is None:
-                self._log("Could not open page in due time, aborting", error=True)
-                bearerToken.delete()
-                return None
+                if self._wait_for_element_location(browser, "name", uzh_login_name) is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    bearerToken.delete()
+                    return None
+                browser.find_element_by_name(uzh_login_name).click()
+                if self._wait_for_element_location(browser, "id", eth_username_id) is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    bearerToken.delete()
+                    return None
             browser.find_element_by_id(uzh_username_id).send_keys(self.USERNAME)
             browser.find_element_by_id(uzh_password_id).send_keys(password)
             browser.find_element_by_name(uzh_login_name).click()
