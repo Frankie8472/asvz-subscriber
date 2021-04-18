@@ -197,13 +197,13 @@ class ASVZCrawler:
         questionnaire_name = '_eventId_proceed'
         final_page_identifier_class = 'table'
 
-        # Init browser
-        firefox_options = Options()
-        firefox_options.headless = True
-        firefox_options.add_argument("--disable-gpu")
-        browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
-
         try:
+            # Init browser
+            firefox_options = Options()
+            firefox_options.headless = True
+            firefox_options.add_argument("--disable-gpu")
+            browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
+
             # Opening ASVZ login page
             self._log("Opening ASVZ Login Page")
             browser.get(url)
