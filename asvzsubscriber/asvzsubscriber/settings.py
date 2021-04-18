@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'p85d&k7z%v)^93v(a+yoj3gbc7+fsxt6&$huv*s=hw78xd4x=f'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.18', 'knobel.internet-box.ch']
 
