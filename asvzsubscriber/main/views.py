@@ -1,3 +1,5 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 import pytz
 from django.contrib.auth.models import User
 from pathos.multiprocessing import ProcessPool

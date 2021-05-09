@@ -1,3 +1,5 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 import json
 import os
 import pytz
