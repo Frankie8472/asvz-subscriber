@@ -1,3 +1,5 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 import os
 from pathlib import Path
 

@@ -1,3 +1,5 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 After DatabaseModel changes:
 1. `python manage.py makemigrations`  
 2. `python manage.py migrations`
