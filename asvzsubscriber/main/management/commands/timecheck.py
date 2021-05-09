@@ -1,3 +1,5 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 import pytz
 from datetime import datetime, timezone
 from pathos.multiprocessing import ProcessPool
