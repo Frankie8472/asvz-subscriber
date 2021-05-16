@@ -75,7 +75,7 @@ class ASVZCrawler:
         lesson_register_time_unix = _unix_time_millis(lesson_register_time_datetime)
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
         time_delta = lesson_register_time_datetime - current_time
-        sleep_time_offset = 2
+        sleep_time_offset = 3
         if time_delta.total_seconds() > 0.0:
             time.sleep(time_delta.total_seconds() - sleep_time_offset)
 
@@ -107,7 +107,7 @@ class ASVZCrawler:
                 self._log(f"Request failed", error=True)
                 pass
 
-            step = 0.1
+            step = 0.01
             time.sleep(step)
             cnt += step
 
