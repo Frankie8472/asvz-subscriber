@@ -309,4 +309,4 @@ class ASVZCrawler:
                     return None
 
     def _log(self, log_msg='', error=False):
-        print(f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.BOT_ID} ==> {'!!' if error else ''} {log_msg}")
+        print(f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.BOT_ID} ==> {'!!' if error else ''} {log_msg}", flush=True)

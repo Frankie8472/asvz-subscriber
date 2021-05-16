@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
 def check_time():
     if __name__ == "__main__":
-        print(f"========= Chron Job =========")
+        print(f"========= Chron Job =========", flush=True)
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
         event_list = ASVZEvent.objects.order_by('register_start_date')
 
@@ -40,5 +40,5 @@ def check_time():
             while not res.ready():
                 time.sleep(5)
 
-        print(f"========= Finished  =========")
+        print(f"========= Finished  =========", flush=True)
     return
