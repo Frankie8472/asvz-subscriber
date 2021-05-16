@@ -16,29 +16,27 @@ class Command(BaseCommand):
 
 
 def check_time():
-    if __name__ == "__main__":
-        print(f"========= Chron Job =========", flush=True)
-        current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
-        event_list = ASVZEvent.objects.order_by('register_start_date')
+    print(f"========= Chron Job =========", flush=True)
+    current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+    event_list = ASVZEvent.objects.order_by('register_start_date')
 
-        pool_event = []
-        while event_list:
-            register_time = event_list[0].register_start_date.replace(tzinfo=timezone.utc).astimezone(
-                tz=pytz.timezone('Europe/Zurich'))
-            time_delta = (register_time - current_time).total_seconds()
-            if time_delta < 5 * 60:
-                event = event_list[0]
-                event_list = event_list[1:]
-                pool_event.append(event)
-            else:
-                break
+    pool_event = []
+    while event_list:
+        register_time = event_list[0].register_start_date.replace(tzinfo=timezone.utc).astimezone(
+            tz=pytz.timezone('Europe/Zurich'))
+        time_delta = (register_time - current_time).total_seconds()
+        if time_delta < 5 * 60:
+            event = event_list[0]
+            event_list = event_list[1:]
+            pool_event.append(event)
+        else:
+            break
 
-        if pool_event:
-            freeze_support()
-            pool = ProcessPool(nodes=8)
-            res = pool.amap(ASVZCrawler, pool_event)
-            while not res.ready():
-                time.sleep(5)
+    if pool_event:
+        pool = ProcessPool(nodes=8)
+        res = pool.amap(ASVZCrawler, pool_event)
+        while not res.ready():
+            time.sleep(5)
 
-        print(f"========= Finished  =========", flush=True)
+    print(f"========= Finished  =========", flush=True)
     return
