@@ -3,7 +3,7 @@
 {% block content %}
     <div class="container">
         <br>
-        <h6>Secret hint: You have to register once before you can login...</h6>
+        <h6>Welcome to the unofficial, lazy and automatic ASVZ enrollment tool</h6>
         <br>
         <form method="POST">
             {% csrf_token %}
@@ -11,6 +11,6 @@
             <button type="submit" class="btn btn-success">Login</button>
         </form>
 
-        To register go to <a href="/register" target="blank"><strong>register</strong></a> instead.
+        <strong>First login</strong>: To register your nethz account, go to <a href="/register" target="blank"><strong>register</strong></a> instead.
     </div>
     {% endblock %}
