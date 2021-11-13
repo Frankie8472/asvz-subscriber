@@ -30,16 +30,16 @@ ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.18', 'knobel.internet-box.ch']
 
 # Application definition
 INSTALLED_APPS = [
+    'main.apps.MainConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main.apps.MainConfig',
 ]
 
-AUTH_USER_MODEL = 'main.models.ASVZUser'
+AUTH_USER_MODEL = 'main.ASVZUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
