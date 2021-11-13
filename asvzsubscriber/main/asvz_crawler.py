@@ -8,13 +8,12 @@ import time
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from cryptography.fernet import Fernet
-from django.contrib.auth.models import User
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from .models import ASVZEvent, BearerToken
+from .models import ASVZEvent, ASVZUser
 
 
 def encrypt_passphrase(passphrase):
@@ -38,7 +37,7 @@ def _unix_time_millis(dt):
 
 class ASVZCrawler:
     def __init__(self, obj=None):
-        if (obj is None) or (not isinstance(obj, ASVZEvent) and not isinstance(obj, User)):
+        if (obj is None) or (not isinstance(obj, ASVZEvent) and not isinstance(obj, ASVZUser)):
             self.BOT_ID = f"{'ERROR'}"
             self._log("No user or no event given", error=True)
             return
@@ -53,7 +52,7 @@ class ASVZCrawler:
 
         if isinstance(obj, ASVZEvent):
             self.EVENT: ASVZEvent = obj
-            self.USER = User.objects.get(username=self.EVENT.user)
+            self.USER = ASVZUser.objects.get(username=self.EVENT.user)
             self.REQUEST_ID = self.EVENT.url[-6:]
 
         self.USERNAME = self.USER.username
@@ -160,25 +159,16 @@ class ASVZCrawler:
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
 
         # noinspection PyBroadException
-        try:
-            bearerToken = BearerToken.objects.get(user=self.USER)
-        except:
-            self._log("Create new BearerToken")
-            bearerToken = BearerToken.objects.create(
-                user=self.USER,
-                bearerToken='',
-                valid_until=current_time - timedelta(hours=2),
-                is_updating=False
-            )
-
-        if bearerToken.is_updating:
+        if self.USER.is_updating:
             time.sleep(2)
             return self.update_bearer_token()
-        elif bearerToken.bearerToken != '' and (bearerToken.valid_until - current_time).total_seconds() > 0:
-            return bearerToken
+        elif self.USER.bearerToken != '' and (self.USER.valid_until - current_time).total_seconds() > 0:
+            return self.USER.bearerToken
         else:
-            bearerToken.is_updating = True
-            bearerToken.save()
+            self._log("Create new BearerToken")
+            self.USER.valid_until = current_time - timedelta(hours=2)
+            self.USER.is_updating = True
+            self.USER.save()
 
         # Update bearer token
         # Init params
@@ -199,13 +189,13 @@ class ASVZCrawler:
         questionnaire_name = '_eventId_proceed'
         final_page_identifier_class = 'table'
 
-        try:
-            # Init browser
-            firefox_options = Options()
-            firefox_options.headless = True
-            firefox_options.add_argument("--disable-gpu")
-            browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
+        # Init browser
+        firefox_options = Options()
+        firefox_options.headless = True
+        firefox_options.add_argument("--disable-gpu")
+        browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
 
+        try:
             # Opening ASVZ login page
             self._log("Opening ASVZ Login Page")
             browser.get(url)
@@ -273,13 +263,13 @@ class ASVZCrawler:
                 raise
 
             self._log("Encrypting and saving bearer token")
-            bearerToken.valid_until = current_time + timedelta(hours=2)
-            bearerToken.bearerToken = encrypt_passphrase(bearer)
+            self.USER.valid_until = current_time + timedelta(hours=2)
+            self.USER.bearerToken = encrypt_passphrase(bearer)
         finally:
             browser.quit()
-            bearerToken.is_updating = False
-            bearerToken.save()
-            return bearerToken
+            self.USER.is_updating = False
+            self.USER.save()
+            return self.USER.bearerToken
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=0.5):
         cnt = 0
