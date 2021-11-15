@@ -180,16 +180,6 @@ class ASVZCrawler:
         # Init params
         self._log("Dispatch Token Crawler")
 
-        institution_submit_name = 'Select'
-        eth_username_id = 'username'
-        uzh_username_id = 'username'
-        eth_password_id = 'password'
-        uzh_password_id = 'password'
-        eth_login_name = '_eventId_proceed'
-        uzh_login_name = '_eventId_proceed'
-        questionnaire_name = '_eventId_proceed'
-        final_page_identifier_class = 'table'
-
         # Init browser
         firefox_options = Options()
         firefox_options.headless = True
