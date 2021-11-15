@@ -136,16 +136,16 @@ class ASVZUser(AbstractBaseUser):
     date_joined: models.DateTimeField = models.DateTimeField(_('date joined'), default=timezone.now)
 
     bearer_token: models.CharField = models.CharField(
-        _('bearerToken'),
+        _('Bearer token'),
         max_length=4000,
         default="",
         help_text=_('Token for enrolling in the preferred lesson. Faster than multiple logins.'),
     )
 
     valid_until: models.DateTimeField = models.DateTimeField(
-        _('valid date for bearertoken'),
+        _('Valid date for bearer token'),
         default=timezone.now,
-        help_text=_('The bearertoke is only valid for 2h. This is the tracker.'),
+        help_text=_('The bearer token is only valid for 2h. This is the tracker.'),
     )
 
     accepted_rules: models.BooleanField = models.BooleanField(
@@ -155,12 +155,12 @@ class ASVZUser(AbstractBaseUser):
 
     is_updating: models.BooleanField = models.BooleanField(
         default=False,
-        help_text=_('Indicates if the scheduler is updating this bearertoken.'),
+        help_text=_('Indicates if the scheduler is updating this bearer token.'),
     )
 
     account_verified: models.BooleanField = models.BooleanField(
         default=False,
-        help_text=_('Indicates if the account was verified by a "bearertoke retrieval".'),
+        help_text=_('Indicates if the account was verified by a "bearer token retrieval".'),
     )
 
     account_approved: models.BooleanField = models.BooleanField(
@@ -203,4 +203,3 @@ class ASVZEvent(models.Model):
 
     def __str__(self):
         return f"{self.user.__str__()} - {self.url[-6:]}"
-
