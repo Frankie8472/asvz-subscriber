@@ -39,28 +39,41 @@ class ASVZCrawler:
     def __init__(self, obj=None):
         if (obj is None) or (not isinstance(obj, ASVZEvent) and not isinstance(obj, ASVZUser)):
             self.BOT_ID = f"{'ERROR'}"
-            self._log("No user or no event given", error=True)
+            self._log("No user or event given", error=True)
             return
 
         self.CLASS = "class"
         self.NAME = "name"
         self.ID = "id"
 
-        self.EVENT = None
-        self.USER = obj
-        self.REQUEST_ID = ''
-
         if isinstance(obj, ASVZEvent):
             self.EVENT: ASVZEvent = obj
             self.USER = ASVZUser.objects.get(username=self.EVENT.user)
             self.REQUEST_ID = self.EVENT.url[-6:]
+        else:
+            self.USER: ASVZUser = obj
+            self.EVENT = None
+            self.REQUEST_ID = ''
 
         self.USERNAME = self.USER.username
+        self._PASSWORD = self.USER.open_password
         self.BOT_ID = f"{self.USERNAME}:{self.REQUEST_ID}"
-        self.BEARER = self._get_bearer_token()
+
+
+
+        self.BEARERTOKEN = self._get_bearer_token()
+
+        if not self.USER.account_verified:
+            if self.BEARERTOKEN == '':
+                self.USER.delete()
+                return
+            self.USER.account_verified = True
+
+        self.USER.save()
 
         if self.EVENT is not None:
             self._subscribe_to_event()
+        return
 
     def _subscribe_to_event(self):
         if self.EVENT is None:
@@ -150,7 +163,9 @@ class ASVZCrawler:
         if self.USERNAME == 'admin' or self.USERNAME == 'test':
             return None
 
-        return _decrypt_passphrase(self.update_bearer_token().bearerToken)
+        self.update_bearer_token()
+        if self.USER.bearerToken == ""
+        return _decrypt_passphrase(self.USER.bearerToken)
 
     def update_bearer_token(self):
         if self.USERNAME == 'admin' or self.USERNAME == 'test':
@@ -300,3 +315,4 @@ class ASVZCrawler:
 
     def _log(self, log_msg='', error=False):
         print(f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.BOT_ID} ==> {'!!' if error else ''} {log_msg}", flush=True)
+
