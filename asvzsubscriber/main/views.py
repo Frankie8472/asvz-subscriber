@@ -92,8 +92,7 @@ def home(request):
         sporttypes=selected_sporttypes,
         facilities=selected_facilities,
         date=selected_date,
-        time=selected_time,
-        sauna=True if selected_sauna == 'checked' else False,
+        time=selected_time
     )
 
     events, events_scheduled, events_scheduled_mod = load_events(data, user)
@@ -276,7 +275,7 @@ def load_events(data, user):
     return events, events_scheduled, events_scheduled_mod
 
 
-def update_url(show_results=15, sporttypes=None, facilities=None, date=None, time=None, sauna=False):
+def update_url(show_results=15, sporttypes=None, facilities=None, date=None, time=None):
     default_url = 'https://asvz.ch/asvz_api/event_search?_format=json&limit=0'
     with urllib.request.urlopen(default_url) as url:
         default_data = json.loads(url.read().decode())
@@ -329,4 +328,3 @@ def update_bearer_token(user: ASVZUser, asyncron=False):
     else:
         ASVZCrawler(user)
     return
-
