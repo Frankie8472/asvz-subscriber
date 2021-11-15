@@ -5,7 +5,34 @@
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
-            <button class="btn" type="submit">Update</button>
+            <button class="btn waves-effect waves-light" type="submit">
+                <i class="material-icons right">save</i>
+                Update
+            </button>
+        </form>
+        <br>
+        <form method="DELETE">
+            <button data-target="modal1" class="modal-trigger btn waves-effect waves-light red lighten-2">
+                <i class="material-icons right">delete</i>
+                Delete Account
+            </button>
+
+            <div id="modal1" class="modal">
+                <div class="modal-content">
+                    <h5>Are you sure you want to delete your account?</h5>
+                </div>
+                <div class="modal-footer">
+                    <button data-target="#!" class="modal-close btn waves-effect waves-light">
+                        <i class="material-icons right">keyboard_return</i>
+                        Back
+                    </button>
+                    <button data-target="#!" class="modal-close btn waves-effect waves-light red lighten-2" type="submit">
+                        <i class="material-icons right">delete_forever</i>
+                        Delete Account
+                    </button>
+                </div>
+              </div>
+
         </form>
     </div>
 {% endblock %}
