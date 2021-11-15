@@ -231,6 +231,13 @@ def account(request):
     update_bearer_token(user, asyncron=True)
 
     if request.method == 'POST':
+        if 'delete' in request.POST:
+            print("\n\nHERE\n\n")
+            logout(request)
+            user.delete()
+            messages.info(request, "Your account has been deleted")
+            return redirect('main:home')
+
         form = ASVZUserChangeForm(user=user, data=request.POST)
         if form.is_valid():
             form.save()
@@ -238,16 +245,11 @@ def account(request):
             user.refresh_from_db()
             update_session_auth_hash(request, form.user)
             messages.info(request, f"Your account has been Updated.")
+            update_bearer_token(user, asyncron=True)
             return redirect('main:home')
         else:
             for msg in form.error_messages:
                 messages.error(request, f"{msg}: {form.error_messages[msg]}")
-
-    if request.method == 'DELETE':
-        logout(request)
-        user.delete()
-        messages.info(request, "Your account has been deleted")
-        return redirect('main:home')
 
     form = ASVZUserChangeForm(request.user)
     return render(

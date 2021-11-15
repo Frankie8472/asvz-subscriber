@@ -83,7 +83,6 @@ class ASVZUserChangeForm(forms.Form):
     new_institution_name = forms.ChoiceField(
         label=_('Your institution'),
         choices=[('ETHZ', 'ETHZ'), ('UZH', 'UZH'), ('ASVZ', 'ASVZ')],
-        empty_value='ETHZ',
     )
 
     new_username = forms.CharField(
@@ -128,6 +127,7 @@ class ASVZUserChangeForm(forms.Form):
         self.user.open_password = encrypt_passphrase(password)
         self.user.set_password(password)
         self.user.account_verified = False
+        self.user.bearer_token = ""
 
         if commit:
             self.user.save()
