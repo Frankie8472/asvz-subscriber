@@ -1,0 +1,28 @@
+{% extends 'main/header.html' %}
+
+{% block content %}
+    <div class="container" style="margin: auto">
+        <br>
+        <h5 style="color:darkred">Your account is being verified and has to be released by an administrator.</h5>
+        <br>
+        <h6>During this time all actions apart from login are prohibited.</h6>
+        <br>
+        <h6>If your account cannot be found by the system on the institution platform, your account will be deleted.</h6>
+        <br>
+        <h6>You have to contact an administrator to use your account.</h6>
+        <br>
+        <h7>This page will refresh itself all 5 seconds and check the status.</h7>
+    </div>
+    <script>
+        $(document).ready(function() {
+            setInterval(function() {
+                cache_clear()
+            }, 5000);
+        });
+
+        function cache_clear() {
+            //window.location.reload(true);  //use this if you do want to remove the cache
+            window.location.reload();
+        }
+    </script>
+{% endblock %}

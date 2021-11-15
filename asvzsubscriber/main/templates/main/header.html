@@ -88,6 +88,9 @@
     <script>
         $(document).ready(function(){
             $('.sidenav').sidenav();
+            // Initialize materialize data picker
+            $('.datepicker').datepicker({'format': 'yyyy-mm-dd'});
+            $('select').formSelect();
         });
     </script>
 </body>
