@@ -173,9 +173,6 @@ class ASVZUser(AbstractBaseUser):
 
     objects = ASVZUserManager()
 
-    def get_bearertoken_valid(self):
-        return f"{self.username.__str__()} - {self.valid_until.__str__()[:16]}"
-
     def has_module_perms(self, app_label):
         """
         Return True if the user has any permissions in the given app label.
@@ -186,6 +183,9 @@ class ASVZUser(AbstractBaseUser):
 
     def has_perm(self, perm, obj=None):
         return self.is_active and self.is_superuser
+
+    def __str__(self):
+        return f"{self.first_name.__str__()} {self.last_name.__str__()} - {self.institution_name.__str__()} - {self.username.__str__()} - {self.valid_until.__str__()[:16]}"
 
 
 class ASVZEvent(models.Model):
