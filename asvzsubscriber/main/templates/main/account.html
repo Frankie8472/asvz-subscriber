@@ -11,7 +11,8 @@
             </button>
         </form>
         <br>
-        <form method="DELETE">
+        <form method="POST">
+            {% csrf_token %}
             <button data-target="modal1" class="modal-trigger btn waves-effect waves-light red lighten-2">
                 <i class="material-icons right">delete</i>
                 Delete Account
@@ -22,17 +23,21 @@
                     <h5>Are you sure you want to delete your account?</h5>
                 </div>
                 <div class="modal-footer">
-                    <button data-target="#!" class="modal-close btn waves-effect waves-light">
+                    <button class="modal-close btn waves-effect waves-light" type="button">
                         <i class="material-icons right">keyboard_return</i>
                         Back
                     </button>
-                    <button data-target="#!" class="modal-close btn waves-effect waves-light red lighten-2" type="submit">
+                    <button class="btn waves-effect waves-light red lighten-2" name='delete' type="submit">
                         <i class="material-icons right">delete_forever</i>
                         Delete Account
                     </button>
                 </div>
-              </div>
-
+            </div>
         </form>
     </div>
+    <script>
+        $(document).ready(function(){
+            $('.modal').modal();
+        });
+    </script>
 {% endblock %}
