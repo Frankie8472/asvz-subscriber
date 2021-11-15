@@ -1,18 +1,20 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 from random import random
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, password_validation
 from django.core.exceptions import ValidationError
 
-from main.asvz_crawler import encrypt_passphrase
-from main.models import ASVZUser
+from .asvz_crawler import encrypt_passphrase
+from .models import ASVZUser
 
 
-class EventForm(forms.Form):
+class ASVZEventForm(forms.Form):
     Events = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple())
 
     def __init__(self, *args, **kwargs):
-        super(EventForm, self).__init__(*args, **kwargs)
+        super(ASVZEventForm, self).__init__(*args, **kwargs)
         self.fields['Events'].widget.attrs.update({'class': 'filled-in'})
         self.fields['Events'].widget.attrs.update({'id': f"{random()}_"})
 
@@ -39,27 +41,96 @@ class ASVZUserCreationForm(forms.ModelForm):
         }
 
     def _post_clean(self):
-        password = self.cleaned_data.get('password2')
+        super()._post_clean()
+        password = self.cleaned_data.get('password')
         if password:
             try:
                 password_validation.validate_password(password, self.instance)
             except ValidationError as error:
-                self.add_error('password2', error)
+                self.add_error('password', error)
         return
 
     def save(self, commit=True):
         user: ASVZUser = super().save(commit=False)
-        user.username = self.cleaned_data['username']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.institution_name = self.cleaned_data['institution_name']
-        user.accepted_rules = self.cleaned_data['accepted_rules']
-        password = self.cleaned_data['password']
+        user.username = self.cleaned_data.get('username')
+        user.first_name = self.cleaned_data.get('first_name')
+        user.last_name = self.cleaned_data.get('last_name')
+        user.institution_name = self.cleaned_data.get('institution_name')
+        user.accepted_rules = self.cleaned_data.get('accepted_rules')
+        password = self.cleaned_data.get('password')
         user.open_password = encrypt_passphrase(password)
         user.set_password(password)
 
         if commit:
             user.save()
-            print(f"\n\n HERE {user.username} {user.first_name} {user.accepted_rules} \n")
         return user
+
+
+class ASVZUserChangeForm(forms.Form):
+    """
+    A form that lets a user change their profile.
+    """
+    error_messages = {
+        'password_incorrect': _("Your old password was entered incorrectly. Please enter it again."),
+        'password_mismatch': _('The two password fields didn’t match.'),
+    }
+    old_password = forms.CharField(
+        label=_("Old password"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password', 'autofocus': True}),
+    )
+
+    new_institution_name = forms.ChoiceField(
+        label=_('Your institution'),
+        choices=[('ETHZ', 'ETHZ'), ('UZH', 'UZH'), ('ASVZ', 'ASVZ')],
+        empty_value='ETHZ',
+    )
+
+    new_username = forms.CharField(
+        label=_('New usename - your institution login name'),
+        min_length=1,
+        max_length=50,
+    )
+
+    new_password = forms.CharField(
+        label=_("New password - your institution password"),
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+        strip=False,
+    )
+
+    field_order = ['old_password', 'new_institution_name', 'new_username', 'new_password']
+
+    def __init__(self, user, *args, **kwargs):
+        self.user: ASVZUser = user
+        super().__init__(*args, **kwargs)
+
+    def clean_old_password(self):
+        """
+        Validate that the old_password field is correct.
+        """
+        old_password = self.cleaned_data.get("old_password")
+        if not self.user.check_password(old_password):
+            raise ValidationError(
+                self.error_messages['password_incorrect'],
+                code='password_incorrect',
+            )
+        return old_password
+
+    def clean_new_password(self):
+        password = self.cleaned_data.get('new_password')
+        password_validation.validate_password(password, self.user)
+        return password
+
+    def save(self, commit=True):
+        self.user.username = self.cleaned_data.get('new_username')
+        self.user.institution_name = self.cleaned_data.get('new_institution_name')
+        password = self.cleaned_data.get("new_password")
+        self.user.open_password = encrypt_passphrase(password)
+        self.user.set_password(password)
+        self.user.account_verified = False
+
+        if commit:
+            self.user.save()
+        return self.user
+
 

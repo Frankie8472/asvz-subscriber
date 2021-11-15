@@ -1,5 +1,6 @@
+# Copyright by your friendly neighborhood SaunaLord
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin, User
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -134,7 +135,7 @@ class ASVZUser(AbstractBaseUser):
 
     date_joined: models.DateTimeField = models.DateTimeField(_('date joined'), default=timezone.now)
 
-    bearerToken: models.CharField = models.CharField(
+    bearer_token: models.CharField = models.CharField(
         _('bearerToken'),
         max_length=4000,
         default="",
@@ -173,7 +174,7 @@ class ASVZUser(AbstractBaseUser):
     objects = ASVZUserManager()
 
     def get_bearertoken_valid(self):
-        return f"{self.user.__str__()} - {self.valid_until.__str__()[:16]}"
+        return f"{self.username.__str__()} - {self.valid_until.__str__()[:16]}"
 
     def has_module_perms(self, app_label):
         """

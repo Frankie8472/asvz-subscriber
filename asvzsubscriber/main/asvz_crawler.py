@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
 from .models import ASVZEvent, ASVZUser
 
 
@@ -48,23 +49,19 @@ class ASVZCrawler:
 
         if isinstance(obj, ASVZEvent):
             self.EVENT: ASVZEvent = obj
-            self.USER = ASVZUser.objects.get(username=self.EVENT.user)
+            self.USER: ASVZUser = ASVZUser.objects.get(username=self.EVENT.user)
             self.REQUEST_ID = self.EVENT.url[-6:]
         else:
             self.USER: ASVZUser = obj
             self.EVENT = None
             self.REQUEST_ID = ''
 
-        self.USERNAME = self.USER.username
-        self._PASSWORD = self.USER.open_password
-        self.BOT_ID = f"{self.USERNAME}:{self.REQUEST_ID}"
+        self.BOT_ID = f"{self.USER.username}:{self.REQUEST_ID}"
 
-
-
-        self.BEARERTOKEN = self._get_bearer_token()
+        self._get_bearer_token()
 
         if not self.USER.account_verified:
-            if self.BEARERTOKEN == '':
+            if self.USER.bearerToken == '':
                 self.USER.delete()
                 return
             self.USER.account_verified = True
@@ -160,7 +157,7 @@ class ASVZCrawler:
         return ret
 
     def _get_bearer_token(self):
-        if self.USERNAME == 'admin' or self.USERNAME == 'test':
+        if self.USER.username == 'admin' or self.USER.username == 'test':
             return None
 
         self.update_bearer_token()
@@ -192,7 +189,6 @@ class ASVZCrawler:
         university = self.USER.last_name
         url = "https://schalter.asvz.ch/tn/my-lessons"
         password = _decrypt_passphrase(self.USER.first_name)
-        aailogin_name = 'provider'
         institution_selection_id = 'userIdPSelection_iddtext'
         institution_submit_name = 'Select'
         eth_username_id = 'username'
@@ -215,10 +211,22 @@ class ASVZCrawler:
             self._log("Opening ASVZ Login Page")
             browser.get(url)
 
-            if self._wait_for_element_location(browser, self.NAME, aailogin_name) is None:
+            if self.USER.institution_name == 'ASVZ':
+                if self._wait_for_element_location(browser, self.NAME, 'AsvzId') is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    raise
+                browser.find_element(by=By.NAME, value='AsvzId').send_keys(self.USER.username)
+            elif self.USER.institution_name == 'UZH':
+                pass
+            elif self.USER.institution_name == 'ETHZ':
+                pass
+            else:
+                # error
+
+            if self._wait_for_element_location(browser, self.NAME, 'provider') is None:
                 self._log("Could not open page in due time, aborting", error=True)
                 raise
-            browser.find_element_by_name(aailogin_name).click()
+            browser.find_element(by=By.NAME, value=aailogin_name).click()
 
             # Opening AAI login page
             self._log("Opening AAI Login Page")
