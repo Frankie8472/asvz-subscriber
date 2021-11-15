@@ -1,12 +1,11 @@
 # Copyright by your friendly neighborhood SaunaLord
 
 import pytz
-from django.contrib.auth.models import User
 from pathos.multiprocessing import ProcessPool
 
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.utils.safestring import mark_safe
 
@@ -14,8 +13,8 @@ import urllib.request
 import json
 from datetime import datetime, timezone, timedelta
 
-from .asvz_crawler import ASVZCrawler, encrypt_passphrase
-from .forms import EventForm, ASVZUserCreationForm
+from .asvz_crawler import ASVZCrawler
+from .forms import ASVZEventForm, ASVZUserCreationForm, ASVZUserChangeForm
 from .models import ASVZEvent, ASVZUser
 
 
@@ -35,8 +34,7 @@ def enrollments(request):
     if not request.user.is_authenticated or not user.account_approved or not user.account_verified:
         return redirect('main:home')
 
-    update_bearer_token_thread_dispatch(user)
-    json_obj = ASVZCrawler(user).get_enrollments()
+    json_obj = ASVZCrawler(user).get_enrollments()  # is already updating bearer token
     new_list = list()
 
     if json_obj is not None:
@@ -65,7 +63,8 @@ def home(request):
     if not user.account_approved or not user.account_verified:
         return redirect('main:validation')
 
-    update_bearer_token_thread_dispatch(user)
+    update_bearer_token(user, asyncron=True)
+
     selected_sporttypes = []
     selected_facilities = []
     tomorrow = datetime.now(tz=pytz.timezone('Europe/Zurich')) + timedelta(days=1)
@@ -101,11 +100,11 @@ def home(request):
 
     if request.method == 'POST' and not ('show_results' in request.POST):
         if 'schedule' in request.POST:
-            form = EventForm(request.POST)
+            form = ASVZEventForm(request.POST)
             form.set_choices(events=events)
 
             if form.is_valid():
-                for selected_event in form.cleaned_data['Events']:
+                for selected_event in form.cleaned_data.get('Events'):
                     for event in data['results']:
                         if selected_event == event['url']:
                             ASVZEvent.objects.create(
@@ -120,11 +119,11 @@ def home(request):
                             )
                             break
         elif 'deschedule' in request.POST:
-            form_scheduled = EventForm(request.POST)
+            form_scheduled = ASVZEventForm(request.POST)
             form_scheduled.set_choices(events=events_scheduled_mod)
 
             if form_scheduled.is_valid():
-                for selected_event in form_scheduled.cleaned_data['Events']:
+                for selected_event in form_scheduled.cleaned_data.get('Events'):
                     for event in events_scheduled:
                         if selected_event == event.url:
                             record = ASVZEvent.objects.get(url=event.url, user=user)
@@ -133,10 +132,10 @@ def home(request):
 
         events, events_scheduled, events_scheduled_mod = load_events(data, user)
 
-    form = EventForm()
+    form = ASVZEventForm()
     form.set_choices(events=events)
 
-    form_scheduled = EventForm()
+    form_scheduled = ASVZEventForm()
     form_scheduled.set_choices(events=events_scheduled_mod)
 
     sporttypes = [t['label'] for t in default_data['facets'][8]['terms']]
@@ -173,6 +172,7 @@ def register(request):
             messages.success(request, f"New Account Created for {user.username}")
             login(request, user)
             messages.info(request, f"You are now logged in as {user.username}")
+            update_bearer_token(user, asyncron=True)
             return redirect("main:home")
         else:
             for msg in form.error_messages:
@@ -199,7 +199,7 @@ def login_request(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                messages.info(request, f"You are now logged in as {username}")
+                messages.info(request, f"You are now logged in as {user.username}")
                 return redirect('main:home')
             else:
                 messages.error(request, "Invalid username or password.")
@@ -229,23 +229,28 @@ def account(request):
     if not user.is_authenticated or not user.account_approved or not user.account_verified:
         return redirect('main:home')
 
-    update_bearer_token_thread_dispatch(user)
+    update_bearer_token(user, asyncron=True)
 
     if request.method == 'POST':
-        form = PasswordChangeForm(user=user, data=request.POST)
+        form = ASVZUserChangeForm(user=user, data=request.POST)
         if form.is_valid():
             form.save()
-            user.first_name = encrypt_passphrase(form.cleaned_data.get('new_password1'))
             user.save()
             user.refresh_from_db()
             update_session_auth_hash(request, form.user)
-            messages.info(request, f"Your password has been Updated.")
+            messages.info(request, f"Your account has been Updated.")
             return redirect('main:home')
         else:
             for msg in form.error_messages:
                 messages.error(request, f"{msg}: {form.error_messages[msg]}")
 
-    form = PasswordChangeForm(request.user)
+    if request.method == 'DELETE':
+        logout(request)
+        user.delete()
+        messages.info(request, "Your account has been deleted")
+        return redirect('main:home')
+
+    form = ASVZUserChangeForm(request.user)
     return render(
         request,
         'main/account.html',
@@ -317,7 +322,11 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     return data, default_data
 
 
-def update_bearer_token_thread_dispatch(user: ASVZUser):
-    pool = ProcessPool(nodes=1)
-    pool.amap(ASVZCrawler, [user])
+def update_bearer_token(user: ASVZUser, asyncron=False):
+    if asyncron:
+        pool = ProcessPool(nodes=1)
+        pool.amap(ASVZCrawler, [user])
+    else:
+        ASVZCrawler(user)
     return
+
