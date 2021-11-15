@@ -15,12 +15,26 @@ import json
 from datetime import datetime, timezone, timedelta
 
 from .asvz_crawler import ASVZCrawler, encrypt_passphrase
-from .forms import EventForm
-from .models import ASVZEvent
+from .forms import EventForm, ASVZUserCreationForm
+from .models import ASVZEvent, ASVZUser
+
+
+def validation(request):
+    user: ASVZUser = request.user
+    if not user.is_authenticated or (user.account_approved and user.account_verified):
+        return redirect('main:home')
+
+    return render(
+        request,
+        'main/validation.html'
+    )
 
 
 def enrollments(request):
-    user = request.user
+    user: ASVZUser = request.user
+    if not request.user.is_authenticated or not user.account_approved or not user.account_verified:
+        return redirect('main:home')
+
     update_bearer_token_thread_dispatch(user)
     json_obj = ASVZCrawler(user).get_enrollments()
     new_list = list()
@@ -45,10 +59,12 @@ def enrollments(request):
 
 # Create your views here.
 def home(request):
-    if not request.user.is_authenticated:
+    user: ASVZUser = request.user
+    if not user.is_authenticated:
         return redirect('main:login')
+    if not user.account_approved or not user.account_verified:
+        return redirect('main:validation')
 
-    user = request.user
     update_bearer_token_thread_dispatch(user)
     selected_sporttypes = []
     selected_facilities = []
@@ -146,28 +162,23 @@ def home(request):
 
 
 def register(request):
-    user = request.user
+    user: ASVZUser = request.user
     if user.is_authenticated:
         return redirect('main:home')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = ASVZUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            user.first_name = encrypt_passphrase(form.cleaned_data.get('password1'))
-            user.last_name = 'ETH Zürich'
-            user.save()
-            user.refresh_from_db()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f"New Account Created for {username}")
+            messages.success(request, f"New Account Created for {user.username}")
             login(request, user)
-            messages.info(request, f"You are now logged in as {username}")
+            messages.info(request, f"You are now logged in as {user.username}")
             return redirect("main:home")
         else:
             for msg in form.error_messages:
                 messages.error(request, f"{msg}: {form.error_messages[msg]}")
 
-    form = UserCreationForm()
+    form = ASVZUserCreationForm()
     return render(
         request,
         'main/register.html',
@@ -176,7 +187,7 @@ def register(request):
 
 
 def login_request(request):
-    user = request.user
+    user: ASVZUser = request.user
     if user.is_authenticated:
         return redirect('main:home')
 
@@ -204,7 +215,8 @@ def login_request(request):
 
 
 def logout_request(request):
-    if not request.user.is_authenticated:
+    user: ASVZUser = request.user
+    if not user.is_authenticated:
         return redirect('main:home')
 
     logout(request)
@@ -213,10 +225,10 @@ def logout_request(request):
 
 
 def account(request):
-    if not request.user.is_authenticated:
+    user: ASVZUser = request.user
+    if not user.is_authenticated or not user.account_approved or not user.account_verified:
         return redirect('main:home')
 
-    user = request.user
     update_bearer_token_thread_dispatch(user)
 
     if request.method == 'POST':
@@ -305,7 +317,7 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     return data, default_data
 
 
-def update_bearer_token_thread_dispatch(user: User):
+def update_bearer_token_thread_dispatch(user: ASVZUser):
     pool = ProcessPool(nodes=1)
     pool.amap(ASVZCrawler, [user])
     return

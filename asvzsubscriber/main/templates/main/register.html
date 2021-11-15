@@ -1,4 +1,5 @@
 {% extends 'main/header.html' %}
+{% load materializecss %}
 
 {% block content %}
     <div class="container">
@@ -8,11 +9,12 @@
             Therefore, I have the ability to access your ethz password if I want to.
             By using this tool you have to trust me to not abuse my power.</h6>
         <h6 style="color:darkred">Don't spread information of this bot, otherwise the probability rises that I have to take it down.</h6>
+        <br>
         <form method="POST">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form|materializecss }}
+            <br>
             <button class="btn" type="submit">Register</button>
-            <strong> The registration process may need 1 to 3 minutes to verify your account. </strong>
         </form>
     </div>
-    {% endblock %}
+{% endblock %}
