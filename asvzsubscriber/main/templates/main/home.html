@@ -13,10 +13,16 @@
                     <input type="checkbox"/>
                 </label>
                 <!--<form method='post'>-->
-                    <button type="submit" class="btn btn-success" name="schedule" value="schedule">Schedule Events</button>
+                    <button type="submit" class="btn waves-effect waves-light" name="schedule" value="schedule">
+                        <i class="material-icons right">add_circle</i>
+                        Schedule Events
+                    </button>
                     <!--{% csrf_token %}-->
                     {{ form.as_p }}
-                    <button type="submit" class="btn btn-success" name="schedule" value="schedule">Schedule Events</button>
+                    <button type="submit" class="btn waves-effect waves-light" name="schedule" value="schedule">
+                        <i class="material-icons right">add_circle</i>
+                        Schedule Events
+                    </button>
                 <!--</form>-->
             </div>
 
@@ -80,7 +86,10 @@
                             </label>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success" name="show_results" value="show_results">Show Results</button>
+                    <button type="submit" class="btn waves-effect waves-light blue" name="show_results" value="show_results">
+                        <i class="material-icons right">refresh</i>
+                        Show Results
+                    </button>
                     <br>
                     <br>
                 <!--</form>-->
@@ -92,7 +101,10 @@
                             <input type="checkbox"/>
                         </label>
                         <!--<form method='POST'>-->
-                            <button type="submit" class="btn btn-success" name="deschedule" value="deschedule">Deschedule Events</button>
+                            <button type="submit" class="btn waves-effect waves-light red lighten-2" name="deschedule" value="deschedule">
+                                <i class="material-icons right">remove-circle</i>
+                                Deschedule Events
+                            </button>
                             <!--{% csrf_token %}-->
                             {{ form_scheduled.as_p }}
                         <!--</form>-->
