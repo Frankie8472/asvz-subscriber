@@ -219,7 +219,7 @@ def logout_request(request):
         return redirect('main:home')
 
     logout(request)
-    messages.info(request, "Logged out successfully!")
+    messages.success(request, "Logged out successfully!")
     return redirect('main:home')
 
 
@@ -232,10 +232,9 @@ def account(request):
 
     if request.method == 'POST':
         if 'delete' in request.POST:
-            print("\n\nHERE\n\n")
             logout(request)
             user.delete()
-            messages.info(request, "Your account has been deleted")
+            messages.success(request, "Your account has been deleted")
             return redirect('main:home')
 
         form = ASVZUserChangeForm(user=user, data=request.POST)
@@ -244,7 +243,7 @@ def account(request):
             user.save()
             user.refresh_from_db()
             update_session_auth_hash(request, form.user)
-            messages.info(request, f"Your account has been Updated.")
+            messages.success(request, f"Your account has been Updated.")
             update_bearer_token(user, asyncron=True)
             return redirect('main:home')
         else:
