@@ -68,7 +68,7 @@ def home(request):
     selected_sporttypes = []
     selected_facilities = []
     tomorrow = datetime.now(tz=pytz.timezone('Europe/Zurich')) + timedelta(days=1)
-    selected_date = tomorrow.strftime('%d.%m.%Y')
+    selected_date = tomorrow.strftime('%Y-%m-%d')
     selected_time = tomorrow.strftime('%H:%M')
     selected_limit = '15'
     selected_sauna = ''
@@ -303,7 +303,7 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
         f_appendix = f_appendix + f":f[{cnt}]"
 
     url = f"https://asvz.ch/asvz_api/event_search?_format=json&limit={show_results}&date={date}%20{time}{sporttype_string}{facility_string}&selected=date{f_appendix}"
-    print(f"\n=========> {url} \n")
+
     with urllib.request.urlopen(url) as url:
         data = json.loads(url.read().decode())
 
