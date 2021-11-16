@@ -42,14 +42,13 @@ class ASVZCrawler:
             self.bot_id = f"{'ERROR'}"
             self._log("No user or event given", error=True)
             return
-
         self.CLASS = "class"
         self.NAME = "name"
         self.ID = "id"
 
         if isinstance(obj, ASVZEvent):
             self.event: ASVZEvent = obj
-            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user)
+            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[2])
             self.request_id = self.event.url[-6:]
         else:
             self.user: ASVZUser = obj
@@ -57,13 +56,13 @@ class ASVZCrawler:
             self.request_id = ''
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
-
+        print(f"\nREACHED111\n")
         if self.user.username == 'admin' or self.user.username == 'test':
             return
 
         self._password = _decrypt_passphrase(self.user.open_password)
         self._update_bearer_token()
-
+        print(f"\nREACHED11\n")
         if not self.user.account_verified:
             if self.user.bearer_token == '':
                 self.user.delete()
@@ -72,8 +71,9 @@ class ASVZCrawler:
             self.user.save()
 
         self._bearer_token = _decrypt_passphrase(self.user.bearer_token)
-
+        print(f"\nREACHED1\n")
         if self.event is not None and self.user.bearer_token != '':
+            print(f"\nREACHED2\n")
             self._subscribe_to_event()
         return
 
