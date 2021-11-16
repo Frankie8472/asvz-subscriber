@@ -4,3 +4,4 @@ venv
 *.pyo
 geckodriver.log
 db.sqlite3
+/asvzsubscriber/main/migrations/0*.py
