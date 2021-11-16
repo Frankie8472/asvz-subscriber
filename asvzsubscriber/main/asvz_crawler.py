@@ -56,13 +56,11 @@ class ASVZCrawler:
             self.request_id = ''
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
-        print(f"\nREACHED111\n")
         if self.user.username == 'admin' or self.user.username == 'test':
             return
 
         self._password = _decrypt_passphrase(self.user.open_password)
         self._update_bearer_token()
-        print(f"\nREACHED11\n")
         if not self.user.account_verified:
             if self.user.bearer_token == '':
                 self.user.delete()
@@ -71,9 +69,7 @@ class ASVZCrawler:
             self.user.save()
 
         self._bearer_token = _decrypt_passphrase(self.user.bearer_token)
-        print(f"\nREACHED1\n")
         if self.event is not None and self.user.bearer_token != '':
-            print(f"\nREACHED2\n")
             self._subscribe_to_event()
         return
 
