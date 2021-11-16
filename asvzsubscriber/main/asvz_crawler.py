@@ -121,7 +121,7 @@ class ASVZCrawler:
                 self._log(f"Request failed", error=True)
                 pass
 
-            step = 0.01
+            step = 0.1
             time.sleep(step)
             cnt += step
 
