@@ -59,4 +59,4 @@ Please use python 3.9 or higher for stability reasons.
             [Install]
             WantedBy=multi-user.target
         ````
-   3. Configure your router (*portforwarding* and *dynamic dns name*)
+   3. Configure your router (*portforwarding* and *dynamic dns name*)  
