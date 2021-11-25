@@ -29,8 +29,9 @@ Please use python 3.9 or higher for stability reasons.
     For this check out [digitalocean](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-debian-10) and search for your operating system
    2. Run scheduled check of events with `timectl`  
     For this check out [systemd-timers](https://opensource.com/article/20/7/systemd-timers)  
-   <br>  
-        ````
+   <br>
+   
+        ``
         asvzsubscriber.timer
        
             [Unit]
@@ -44,8 +45,8 @@ Please use python 3.9 or higher for stability reasons.
        
             [Install]    
             WantedBy=timers.target 
-        ````
-        ````
+        ``
+        ``
         asvzsubscriber.service
        
             [Unit]
@@ -58,5 +59,5 @@ Please use python 3.9 or higher for stability reasons.
     
             [Install]
             WantedBy=multi-user.target
-        ````
+        ``
    3. Configure your router (*portforwarding* and *dynamic dns name*)  
