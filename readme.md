@@ -29,7 +29,6 @@ Please use python 3.9 or higher for stability reasons.
     For this check out [digitalocean](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-debian-10) and search for your operating system
    2. Run scheduled check of events with `timectl`  
     For this check out [systemd-timers](https://opensource.com/article/20/7/systemd-timers)  
-   <br>
 ```
 asvzsubscriber.timer
 
