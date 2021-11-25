@@ -30,34 +30,34 @@ Please use python 3.9 or higher for stability reasons.
    2. Run scheduled check of events with `timectl`  
     For this check out [systemd-timers](https://opensource.com/article/20/7/systemd-timers)  
    <br>
-   
-        ```
-        asvzsubscriber.timer
-       
-            [Unit]
-            Description=ASVZSubscription Check Time.
-            Requires=asvzsubscriber.service
-       
-            [Timer] 
-            Unit=asvzsubscriber.service   
-            OnCalendar=*-*-* *:2/5:00  
-            AccuracySec=10s     
-       
-            [Install]    
-            WantedBy=timers.target 
-        ```
-        ```
-        asvzsubscriber.service
-       
-            [Unit]
-            Description=ASVZ Subscriber
-            Wants=asvzsubscriber.timer
-    
-            [Service]
-            Type=simple
-            ExecStart=/home/~username~/asvz-subscriber/venv/bin/python /home/~username~/asvz-subscriber/asvzsubscriber/manage.py timecheck
-    
-            [Install]
-            WantedBy=multi-user.target
-        ```
+```
+asvzsubscriber.timer
+
+[Unit]
+Description=ASVZSubscription Check Time.
+Requires=asvzsubscriber.service
+
+[Timer] 
+Unit=asvzsubscriber.service   
+OnCalendar=*-*-* *:2/5:00  
+AccuracySec=10s     
+
+[Install]    
+WantedBy=timers.target 
+```
+```
+asvzsubscriber.service
+
+[Unit]
+Description=ASVZ Subscriber
+Wants=asvzsubscriber.timer
+
+[Service]
+Type=simple
+ExecStart=/home/~username~/asvz-subscriber/venv/bin/python /home/~username~/asvz-subscriber/asvzsubscriber/manage.py timecheck
+
+[Install]
+WantedBy=multi-user.target
+```
+
    3. Configure your router (*portforwarding* and *dynamic dns name*)  
