@@ -12,19 +12,25 @@ purposes.
 2. Install `geckodriver` for the [selenium](https://selenium-python.readthedocs.io/) library in python
 3. Create a key file `key.lock` in the top folder with a random 
 key of your desired length
-4. Create python virtual environment in the top folder called venv  
+4. Create in the folder `'top_folder'/asvzsubscriber/` a file `.env` with the content
+```
+Debug=True
+SECRET_KEY='your own secret long key'
+HOST='your non local host ip'
+```
+6. Create python virtual environment in the top folder called venv  
 `python -m venv .`  
 Please use python 3.9 or higher for stability reasons.
-5. Enable virtual environment and install requrements  
+7. Enable virtual environment and install requrements  
 `source venv/bin/activate`  
 `pip install -r requirements.txt`
-6. Local testing  
+8. Local testing  
 `cd asvzsubscriber`  
 `python manage.py makemigrations`  
 `python manage.py migrate`  
 `python manage.py createsuperuser`  
 `python manage.py runserver`  
-7. Global setup
+9. Global setup
    1. Setup gunicorn and nginx  
     For this check out [digitalocean](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-debian-10) and search for your operating system
    2. Run scheduled check of events with `timectl`  
