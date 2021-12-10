@@ -304,6 +304,8 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
 
     url = f"https://asvz.ch/asvz_api/event_search?_format=json&limit={show_results}&date={date}%20{time}{sporttype_string}{facility_string}&selected=date{f_appendix}"
 
+    # print(f"\nDEBUG ====> {url}\n")
+
     with urllib.request.urlopen(url) as url:
         data = json.loads(url.read().decode())
 
@@ -311,8 +313,10 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     events_to_be_removed = []
     for event in data['results']:
         current_time = datetime.now(pytz.timezone('Europe/Zurich'))
-        registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
-            tzinfo=timezone.utc).astimezone(tz=current_time.tzinfo)
+        registration_start = current_time
+        if 'oe_from_date' in event:
+            registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
+                tzinfo=timezone.utc).astimezone(tz=current_time.tzinfo)
         time_delta = (registration_start - current_time).total_seconds()
         if time_delta < 0.0:
             events_to_be_removed.append(event)
