@@ -1,5 +1,5 @@
-# Copyright by your friendly neighborhood SaunaLord
-
+#### Copyright by your friendly neighborhood SaunaLord
+# ASVZ Subscription and Validation Zealot (ASVZ-BOT)
 Welcome to the unofficial and illegal ASVZ subscriber tool. 
 By using this tool the 
 ["Benutzerordnung für Telematik (BOT)"](https://rechtssammlung.sp.ethz.ch/Dokumente/203.21.pdf) 
