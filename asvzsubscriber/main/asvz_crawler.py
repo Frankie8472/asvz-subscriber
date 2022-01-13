@@ -121,7 +121,7 @@ class ASVZCrawler:
             time.sleep(step)
             cnt += step
 
-        if ret == 422:
+        if ret != 201:
             self._log("Registration Failed")
         else:
             self._log("Registration Succeeded")
@@ -165,16 +165,16 @@ class ASVZCrawler:
             time.sleep(2)
             return self._update_bearer_token()
         elif self.user.bearer_token != '' and (self.user.valid_until - current_time).total_seconds() > 0:
+            self._log(f"Bearer Token still valid for {(self.user.valid_until - current_time).total_seconds()/60:.2f}min")
             return
         else:
-            self._log("Update Bearer Token")
-            self.user.valid_until = current_time - timedelta(hours=2)
+            self._log("Updating Bearer Token")
             self.user.is_updating = True
             self.user.save()
 
         # Update bearer token
         # Init params
-        self._log("Dispatch Token Crawler")
+        self._log("Dispatching Token Crawler")
 
         # Init browser
         firefox_options = Options()
@@ -213,7 +213,7 @@ class ASVZCrawler:
 
                 self._log(f"Opening {self.user.institution_name} Login Page")
 
-                if self.user.institution_name == 'ETHZ':
+                if self.user.institution_name == 'ETHZ' or self.user.institution_name == 'UZH':
                     # Opening ETH Login Page
                     if self._wait_for_element_location(browser, self.ID, 'username') is None:
                         self._log("Could not open page in due time, aborting", error=True)
@@ -221,16 +221,6 @@ class ASVZCrawler:
                     browser.find_element(by=By.ID, value='username').send_keys(self.user.username)
                     browser.find_element(by=By.ID, value='password').send_keys(self._password)
                     browser.find_element(by=By.NAME, value='_eventId_proceed').click()
-
-                elif self.user.institution_name == 'UZH':
-                    # Opening ETH Login Page
-                    if self._wait_for_element_location(browser, self.ID, 'username') is None:
-                        self._log("Could not open page in due time, aborting", error=True)
-                        raise
-                    browser.find_element(by=By.ID, value='username').send_keys(self.user.username)
-                    browser.find_element(by=By.ID, value='password').send_keys(self._password)
-                    browser.find_element(by=By.NAME, value='_eventId_proceed').click()
-
                 else:
                     self._log("Programming error by institution, aborting", error=True)
                     raise
@@ -252,8 +242,8 @@ class ASVZCrawler:
             bearer = None
             for key, value in browser.execute_script("return localStorage").items():
                 if key.startswith("oidc.user"):
-                    localStorage_json = json.loads(value)
-                    bearer = localStorage_json['access_token']
+                    local_storage_json = json.loads(value)
+                    bearer = local_storage_json['access_token']
                     break
 
             if bearer is None:
@@ -267,7 +257,7 @@ class ASVZCrawler:
             browser.quit()
             self.user.is_updating = False
             self.user.save()
-            return
+            return self._update_bearer_token()
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=0.5):
         cnt = 0
