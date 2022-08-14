@@ -6,10 +6,11 @@
         <thead>
         <tr>
             <th>Titel</th>
-            <th>Sportart</th>
-            <th>Datum</th>
-            <th>Ort</th>
-            <th>Platz-Nr.</th>
+            <th>Sport Type</th>
+            <th>Date</th>
+            <th>Place</th>
+            <th>Room</th>
+            <th>Ranking</th>
         </tr>
         </thead>
 
@@ -20,6 +21,7 @@
             <td> {{obj.sportName}} </td>
             <td> {{obj.lessonTime}} </td>
             <td> {{obj.location}} </td>
+            <td> {{obj.room}}</td>
             <td> {{obj.placeNumber}} </td>
         </tr>
         {% endfor %}

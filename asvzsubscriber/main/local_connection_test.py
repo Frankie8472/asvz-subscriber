@@ -23,16 +23,16 @@ class ASVZCrawler:
         self.bot_id = 'LOCAL'
 
         self.event_id = ""
-        self.username = ""
-        self.institution_name = ''
-        self._password = ""
+        self.username = "knobelf"
+        self.institution_name = 'ETHZ'
+        self._password = "***REMOVED***"
         self._bearer_token = None
 
         self._update_bearer_token()
 
         self._log(str(self._bearer_token))
 
-        if self._bearer_token is not None and self.event_id is not None:
+        if self._bearer_token is not None and self.event_id is not None and self.event_id is not "":
             self._subscribe_to_event()
         return
 
@@ -252,7 +252,11 @@ class ASVZCrawler:
 
 
 def main():
-    ASVZCrawler()
+    obj = ASVZCrawler()
+    json = obj.get_enrollments()
+    print(json)
+    for obj in json:
+        print(obj)
 
 
 if __name__ == "__main__":
