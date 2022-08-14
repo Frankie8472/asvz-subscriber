@@ -23,9 +23,9 @@ class ASVZCrawler:
         self.bot_id = 'LOCAL'
 
         self.event_id = ""
-        self.username = "knobelf"
-        self.institution_name = 'ETHZ'
-        self._password = "***REMOVED***"
+        self.username = ""
+        self.institution_name = ''
+        self._password = ""
         self._bearer_token = None
 
         self._update_bearer_token()
