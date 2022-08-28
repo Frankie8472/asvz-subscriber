@@ -38,12 +38,13 @@ def enrollments(request):
     new_list = list()
 
     if json_obj is not None:
-        for obj in json_obj['data']:
+        for obj in json_obj:
             new_list.append({
                 "lessonName": obj['lessonName'],
                 "sportName": obj['sportName'],
                 "lessonTime": f"{obj['lessonStart'][8:10]}.{obj['lessonStart'][5:7]}.{obj['lessonStart'][0:4]} {obj['lessonStart'][11:16]} - {obj['lessonEnd'][11:16]}",
-                "location": obj['location']['De'],
+                "location": obj['location'],
+                "room": obj['room'],
                 "placeNumber": obj['placeNumber']
             })
         new_list = sorted(new_list, key=lambda i: i['lessonTime'])

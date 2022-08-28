@@ -97,20 +97,37 @@ class ASVZCrawler:
         while (ret != 201) and (cnt < 2 * sleep_time_offset):
             # noinspection PyBroadException
             try:
+                cookies = {
+                    'cookie-agreed': '0',
+                }
+
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
+                    # 'Accept-Encoding': 'gzip, deflate, br',
+                    'Authorization': f'Bearer {self._bearer_token}',
+                    # Already added when you pass json=
+                    # 'Content-Type': 'application/json',
+                    'Origin': 'https://schalter.asvz.ch',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Referer': f'https://schalter.asvz.ch/tn/lessons/{self.request_id}',
+                    # 'Cookie': 'cookie-agreed=0',
+                    'Sec-Fetch-Dest': 'empty',
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-origin',
+                }
+
+                json_data = {}
+
                 ret = requests.post(
-                    url=f'https://schalter.asvz.ch/tn-api/api/Lessons/{self.request_id}/enroll?%3Ft={lesson_register_time_unix}',
-                    headers={
-                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
-                        'Accept': 'application/json, text/plain, */*',
-                        'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
-                        'Authorization': f'Bearer {self._bearer_token}',
-                        'Content-Type': 'application/json',
-                        'Origin': 'https://schalter.asvz.ch',
-                        'DNT': '1',
-                        'Connection': 'keep-alive',
-                        'Referer': f'https://schalter.asvz.ch/tn/lessons/{self.request_id}',
-                    }
+                    f'https://schalter.asvz.ch/tn-api/api/Lessons/{self.request_id}/Enrollment??t={lesson_register_time_unix}',
+                    cookies=cookies,
+                    headers=headers,
+                    json=json_data
                 ).status_code
+
                 self._log(f"Status Code: {ret}")
 
             except:
@@ -140,19 +157,31 @@ class ASVZCrawler:
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
         log_time = _unix_time_millis(current_time)
 
+        cookies = {
+            'cookie-agreed': '0',
+        }
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
+            # 'Accept-Encoding': 'gzip, deflate, br',
+            'Authorization': f'Bearer {self._bearer_token}',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Referer': 'https://schalter.asvz.ch/tn/my-lessons',
+            # 'Cookie': 'cookie-agreed=0',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            # Requests doesn't support trailers
+            # 'TE': 'trailers',
+        }
+
         ret = requests.get(
-            url=f'https://schalter.asvz.ch/tn-api/api/Enrollments??t={log_time}',
-            headers={
-                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
-                'Accept': 'application/json, text/plain, */*',
-                'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
-                'Authorization': f'Bearer {self._bearer_token}',
-                'Content-Type': 'application/json',
-                'Origin': 'https://schalter.asvz.ch',
-                'DNT': '1',
-                'Connection': 'keep-alive',
-                'Referer': f'https://schalter.asvz.ch/tn/my-lessons',
-            }
+            f'https://schalter.asvz.ch/tn-api/api/Enrollments??t={log_time}',
+            cookies=cookies,
+            headers=headers
         ).json()
 
         return ret
@@ -165,7 +194,7 @@ class ASVZCrawler:
             time.sleep(2)
             return self._update_bearer_token()
         elif self.user.bearer_token != '' and (self.user.valid_until - current_time).total_seconds() > 0:
-            self._log(f"Bearer Token still valid for {(self.user.valid_until - current_time).total_seconds()/60:.2f}min")
+            self._log(f"Bearer Token still valid for {(self.user.valid_until - current_time).total_seconds()/60:.2f} min")
             return
         else:
             self._log("Updating Bearer Token")
@@ -194,7 +223,7 @@ class ASVZCrawler:
 
                 browser.find_element(by=By.NAME, value='AsvzId').send_keys(self.user.username)
                 browser.find_element(by=By.NAME, value='Password').send_keys(self._password)
-                browser.find_element(by=By.XPATH, value='/html/body/div/div[5]/div[1]/div/div[2]/div/form/div[3]/button').click()
+                browser.find_element(by=By.XPATH, value='/html/body/div/div[5]/div[2]/div/div[2]/div/div/form/div[3]/button').click()
             else:
                 if self._wait_for_element_location(browser, self.NAME, 'provider') is None:
                     self._log("Could not open page in due time, aborting", error=True)

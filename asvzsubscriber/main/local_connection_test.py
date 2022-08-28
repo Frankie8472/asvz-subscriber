@@ -1,11 +1,8 @@
 import json
-import os
 import pytz
 import requests
 import time
-from pathlib import Path
-from datetime import datetime, timezone, timedelta
-from cryptography.fernet import Fernet
+from datetime import datetime, timezone
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -19,96 +16,186 @@ def _unix_time_millis(dt):
 
 class ASVZCrawler:
     def __init__(self):
-
         self.CLASS = "class"
         self.NAME = "name"
         self.ID = "id"
+        self.headless = False
+        self.bot_id = 'LOCAL'
 
-        self.EVENT = None
-        self.REQUEST_ID = '::TEST::'
+        self.event_id = ""
+        self.username = ""
+        self.institution_name = ''
+        self._password = ""
+        self._bearer_token = None
 
-        self.USERNAME = "knobelf"
-        self.BOT_ID = f"{self.USERNAME}:{self.REQUEST_ID}"
+        self._update_bearer_token()
 
-    def update_bearer_token(self):
+        self._log(str(self._bearer_token))
 
+        if self._bearer_token is not None and self.event_id is not None and self.event_id is not "":
+            self._subscribe_to_event()
+        return
+
+    def _subscribe_to_event(self):
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+        lesson_register_time_unix = _unix_time_millis(current_time)
+        # Wait until 5 sec before reg opening
+        self._log('Wait for registration to open')
+        sleep_time_offset = 3
 
-        # Update bearer token
+        # Spam Post requests
+        self._log('Trying to register')
+
+        ret = 422
+        cnt = 0
+        while (ret != 201) and (cnt < 2 * sleep_time_offset):
+            # noinspection PyBroadException
+            try:
+                cookies = {
+                    'cookie-agreed': '0',
+                }
+
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
+                    # 'Accept-Encoding': 'gzip, deflate, br',
+                    'Authorization': f'Bearer {self._bearer_token}',
+                    # Already added when you pass json=
+                    # 'Content-Type': 'application/json',
+                    'Origin': 'https://schalter.asvz.ch',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Referer': f'https://schalter.asvz.ch/tn/lessons/{self.event_id}',
+                    # 'Cookie': 'cookie-agreed=0',
+                    'Sec-Fetch-Dest': 'empty',
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-origin',
+                }
+
+                json_data = {}
+
+                response = requests.post(
+                    f'https://schalter.asvz.ch/tn-api/api/Lessons/{self.event_id}/Enrollment??t={lesson_register_time_unix}', cookies=cookies,
+                    headers=headers, json=json_data)
+                ret = response.status_code
+                self._log(f"Status Code: {ret}")
+                self._log(f"Status Code: {response}")
+
+            except:
+                self._log(f"Request failed", error=True)
+                pass
+
+            step = 0.1
+            time.sleep(step)
+            cnt += step
+
+        if ret != 201:
+            self._log("Registration Failed")
+        else:
+            self._log("Registration Succeeded")
+
+        return
+
+
+    def get_enrollments(self):
         # Init params
-        self._log("Dispatch Token Crawler")
+        current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+        log_time = _unix_time_millis(current_time)
 
-        university = "ETH Zürich"
-        url = "https://schalter.asvz.ch/tn/my-lessons"
-        password = getpass.getpass("PW: ")
-        aailogin_name = 'provider'
-        institution_selection_id = 'userIdPSelection_iddtext'
-        institution_submit_name = 'Select'
-        eth_username_id = 'username'
-        uzh_username_id = 'username'
-        eth_password_id = 'password'
-        uzh_password_id = 'password'
-        eth_login_name = '_eventId_proceed'
-        uzh_login_name = '_eventId_proceed'
-        questionnaire_name = '_eventId_proceed'
-        final_page_identifier_class = 'table'
+        cookies = {
+            'cookie-agreed': '0',
+        }
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
+            # 'Accept-Encoding': 'gzip, deflate, br',
+            'Authorization': f'Bearer {self._bearer_token}',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Referer': 'https://schalter.asvz.ch/tn/my-lessons',
+            # 'Cookie': 'cookie-agreed=0',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            # Requests doesn't support trailers
+            # 'TE': 'trailers',
+        }
+
+        ret = requests.get(
+            f'https://schalter.asvz.ch/tn-api/api/Enrollments??t={log_time}',
+            cookies=cookies,
+            headers=headers
+        ).json()
+
+        return ret
+
+    def _update_bearer_token(self):
+        self._log("Dispatching Token Crawler")
 
         # Init browser
         firefox_options = Options()
-        firefox_options.headless = False
+        firefox_options.headless = self.headless
         firefox_options.add_argument("--disable-gpu")
         browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
 
         try:
             # Opening ASVZ login page
             self._log("Opening ASVZ Login Page")
-            browser.get(url)
+            browser.get("https://schalter.asvz.ch/tn/my-lessons")
 
-            if self._wait_for_element_location(browser, self.NAME, aailogin_name) is None:
-                self._log("Could not open page in due time, aborting", error=True)
-                raise
-            browser.find_element_by_name(aailogin_name).click()
-
-            # Opening AAI login page
-            self._log("Opening AAI Login Page")
-            if self._wait_for_element_location(browser, self.ID, institution_selection_id) is None:
-                self._log("Could not open page in due time, aborting", error=True)
-                raise
-
-            self._log("Selecting Institution")
-            browser.find_element_by_id(institution_selection_id).send_keys(university)
-            browser.find_element_by_name(institution_submit_name).click()
-
-            self._log(f"Opening {university} Login Page")
-            if university == 'ETH Zürich':
-                # Opening ETH Login Page
-                if self._wait_for_element_location(browser, self.ID, eth_username_id) is None:
+            if self.institution_name == 'ASVZ':
+                if self._wait_for_element_location(browser, self.ID, 'AsvzId') is None:
                     self._log("Could not open page in due time, aborting", error=True)
                     raise
-                browser.find_element_by_id(eth_username_id).send_keys(self.USERNAME)
-                browser.find_element_by_id(eth_password_id).send_keys(password)
-                browser.find_element_by_name(eth_login_name).click()
-
-            elif university == 'Universität Zürich':
-                # Opening ETH Login Page
-                if self._wait_for_element_location(browser, self.ID, uzh_username_id) is None:
-                    self._log("Could not open page in due time, aborting", error=True)
-                    raise
-                browser.find_element_by_id(uzh_username_id).send_keys(self.USERNAME)
-                browser.find_element_by_id(uzh_password_id).send_keys(password)
-                browser.find_element_by_name(uzh_login_name).click()
+                print("reached")
+                browser.find_element(by=By.NAME, value='AsvzId').send_keys(self.username)
+                print("reached")
+                browser.find_element(by=By.NAME, value='Password').send_keys(self._password)
+                print("reached")
+                #browser.find_element(by=By.CLASS_NAME, value='btn btn-primary btn-block').click()
+                browser.find_element(by=By.XPATH, value='/html/body/div/div[5]/div[2]/div/div[2]/div/div/form/div[3]/button').click()
+                print("reached")
             else:
-                self._log("Corrupt university", error=True)
-                raise
+                if self._wait_for_element_location(browser, self.NAME, 'provider') is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    raise
+                browser.find_element(by=By.NAME, value='provider').click()
 
-            if self._wait_for_element_location(browser, self.CLASS, final_page_identifier_class) is None:
+                # Opening AAI login page
+                self._log("Opening AAI Login Page")
+                if self._wait_for_element_location(browser, self.ID, 'userIdPSelection_iddtext') is None:
+                    self._log("Could not open page in due time, aborting", error=True)
+                    raise
+
+                self._log("Selecting Institution")
+                browser.find_element(by=By.ID, value='userIdPSelection_iddtext').send_keys(self.institution_name)
+                browser.find_element(by=By.NAME, value='Select').click()
+
+                self._log(f"Opening {self.institution_name} Login Page")
+
+                if self.institution_name == 'ETHZ' or self.institution_name == 'UZH':
+                    # Opening ETH Login Page
+                    if self._wait_for_element_location(browser, self.ID, 'username') is None:
+                        self._log("Could not open page in due time, aborting", error=True)
+                        raise
+                    browser.find_element(by=By.ID, value='username').send_keys(self.username)
+                    browser.find_element(by=By.ID, value='password').send_keys(self._password)
+                    browser.find_element(by=By.NAME, value='_eventId_proceed').click()
+                else:
+                    self._log("Programming error by institution, aborting", error=True)
+                    raise
+
+            if self._wait_for_element_location(browser, self.CLASS, 'table') is None:
                 self._log("Could not open last page, checking for questionnaire")
-                if self._wait_for_element_location(browser, self.NAME, questionnaire_name) is None:
+                if self._wait_for_element_location(browser, self.NAME, '_eventId_proceed') is None:
                     self._log("Questionnaire not found, aborting", error=True)
                     raise
                 self._log("Questionnaire found, accepting")
-                browser.find_element_by_name("_eventId_proceed").click()
-                if self._wait_for_element_location(browser, self.CLASS, final_page_identifier_class) is None:
+                browser.find_element(by=By.NAME, value="_eventId_proceed").click()
+                if self._wait_for_element_location(browser, self.CLASS, 'table') is None:
                     self._log("Last page still not found, aborting", error=True)
                     raise
 
@@ -118,19 +205,19 @@ class ASVZCrawler:
             bearer = None
             for key, value in browser.execute_script("return localStorage").items():
                 if key.startswith("oidc.user"):
-                    localStorage_json = json.loads(value)
-                    bearer = localStorage_json['access_token']
+                    local_storage_json = json.loads(value)
+                    bearer = local_storage_json['access_token']
                     break
 
             if bearer is None:
-                self._log("BearerToken Not found in json", error=True)
+                self._log("Bearer token not found in json", error=True)
                 raise
 
             self._log("Encrypting and saving bearer token")
-            self._log(bearer)
+            self._bearer_token = bearer
         finally:
             browser.quit()
-            return None
+            return
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=0.5):
         cnt = 0
@@ -160,11 +247,16 @@ class ASVZCrawler:
                     return None
 
     def _log(self, log_msg='', error=False):
-        print(f"{self.BOT_ID} ==> {'!!' if error else ''} {log_msg}")
+        print(f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.bot_id} ==> {'!!' if error else ''} {log_msg}", flush=True)
+
 
 
 def main():
-    ASVZCrawler().update_bearer_token()
+    obj = ASVZCrawler()
+    json = obj.get_enrollments()
+    print(json)
+    for obj in json:
+        print(obj)
 
 
 if __name__ == "__main__":
