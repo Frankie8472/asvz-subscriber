@@ -192,6 +192,7 @@ class ASVZCrawler:
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
 
         # noinspection PyBroadException
+        self.user.refresh_from_db()
         if self.user.is_updating:
             time.sleep(2)
             return self._update_bearer_token()
@@ -202,6 +203,7 @@ class ASVZCrawler:
             self._log("Updating Bearer Token")
             self.user.is_updating = True
             self.user.save()
+        self.user.refresh_from_db()
 
         # Update bearer token
         # Init params
