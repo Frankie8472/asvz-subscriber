@@ -25,7 +25,9 @@ def check_time():
         register_time = event_list[0].register_start_date.replace(tzinfo=timezone.utc).astimezone(
             tz=pytz.timezone('Europe/Zurich'))
         time_delta = (register_time - current_time).total_seconds()
+        print(f"current event: {event_list[0].url[-6:]}")
         if time_delta < 5 * 60:
+            print(f"appending event: {event_list[0].url[-6:]}")
             event = event_list[0]
             event_list = event_list[1:]
             pool_event.append(event)

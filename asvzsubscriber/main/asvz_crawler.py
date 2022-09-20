@@ -81,10 +81,12 @@ class ASVZCrawler:
         # Wait until 5 sec before reg opening
         self._log('Wait for registration to open')
 
-        lesson_register_time_datetime = self.event.register_start_date.replace(tzinfo=timezone.utc)
+        lesson_register_time_datetime = self.event.register_start_date.replace(tzinfo=timezone.utc).astimezone(
+            tz=pytz.timezone('Europe/Zurich'))
         lesson_register_time_unix = _unix_time_millis(lesson_register_time_datetime)
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
         time_delta = lesson_register_time_datetime - current_time
+        self._log(f'TIMEDELTA: {time_delta}')
         sleep_time_offset = 3
         if time_delta.total_seconds() > 0.0:
             time.sleep(time_delta.total_seconds() - sleep_time_offset)
