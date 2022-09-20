@@ -1,4 +1,6 @@
 import json
+import sys
+
 import pytz
 import requests
 import time
@@ -139,7 +141,10 @@ class ASVZCrawler:
         firefox_options = Options()
         firefox_options.headless = self.headless
         firefox_options.add_argument("--disable-gpu")
-        browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
+        if sys.platform == 'win32':
+            browser = webdriver.Firefox(executable_path='../../geckodriver.exe', options=firefox_options)
+        else:
+            browser = webdriver.Firefox(executable_path='/usr/bin/geckodriver', options=firefox_options)
 
         try:
             # Opening ASVZ login page
