@@ -278,7 +278,7 @@ def load_events(data, user):
 
 
 def update_url(show_results=15, sporttypes=None, facilities=None, date=None, time=None):
-    default_url = 'https://asvz.ch/asvz_api/event_search?_format=json&limit=0'
+    default_url = f'https://asvz.ch/asvz_api/event_search?_format=json&limit={show_results}'
     with urllib.request.urlopen(default_url) as url:
         default_data = json.loads(url.read().decode())
 

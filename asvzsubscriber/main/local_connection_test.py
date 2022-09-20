@@ -1,5 +1,6 @@
 import json
 import sys
+import urllib
 
 import pytz
 import requests
@@ -255,6 +256,12 @@ class ASVZCrawler:
         print(f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.bot_id} ==> {'!!' if error else ''} {log_msg}", flush=True)
 
 
+def asvz_api():
+    default_url = 'https://asvz.ch/asvz_api/event_search?_format=json'
+    with urllib.request.urlopen(default_url) as url:
+        default_data = json.loads(url.read().decode())
+    print(default_data)
+
 
 def main():
     obj = ASVZCrawler()
@@ -265,4 +272,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    #main()
+    asvz_api()
