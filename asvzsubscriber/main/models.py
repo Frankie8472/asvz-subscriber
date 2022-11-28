@@ -83,7 +83,7 @@ class ASVZUser(AbstractBaseUser):
     )
     username: models.CharField = models.CharField(
         _('Username - your institution login name'),
-        max_length=20,
+        max_length=100,
         unique=True,
         primary_key=True,
         error_messages={

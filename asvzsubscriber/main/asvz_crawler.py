@@ -253,7 +253,7 @@ class ASVZCrawler:
                         raise
                     browser.find_element(by=By.ID, value='username').send_keys(self.user.username)
                     browser.find_element(by=By.ID, value='password').send_keys(self._password)
-                    browser.find_element(by=By.NAME, value='_eventId_proceed').click()
+                    browser.find_element(by=By.NAME, value='login-button').click()
                 else:
                     self._log("Programming error by institution, aborting", error=True)
                     raise
