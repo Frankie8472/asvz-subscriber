@@ -246,7 +246,7 @@ class ASVZCrawler:
 
                 self._log(f"Opening {self.user.institution_name} Login Page")
 
-                if self.user.institution_name == 'ETHZ' or self.user.institution_name == 'UZH':
+                if self.user.institution_name == 'UZH':
                     # Opening ETH Login Page
                     if self._wait_for_element_location(browser, self.ID, 'username') is None:
                         self._log("Could not open page in due time, aborting", error=True)
@@ -254,6 +254,16 @@ class ASVZCrawler:
                     browser.find_element(by=By.ID, value='username').send_keys(self.user.username)
                     browser.find_element(by=By.ID, value='password').send_keys(self._password)
                     browser.find_element(by=By.ID, value='login-button').click()
+
+                elif self.user.institution_name == 'ETHZ':
+                    # Opening ETH Login Page
+                    if self._wait_for_element_location(browser, self.ID, 'username') is None:
+                        print("Could not open page in due time, aborting")
+                        raise
+                    browser.find_element(by=By.ID, value='username').send_keys(self.user.username)
+                    browser.find_element(by=By.ID, value='password').send_keys(self._password)
+                    browser.find_element(by=By.NAME, value='_eventId_proceed').click()
+
                 else:
                     self._log("Programming error by institution, aborting", error=True)
                     raise

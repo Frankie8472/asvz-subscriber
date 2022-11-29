@@ -107,7 +107,7 @@ def surfin_the_vortex(pw):
 
             print(f"Opening {inst} Login Page")
 
-            if inst == 'ETHZ' or inst == 'UZH':
+            if inst == 'UZH':
                 # Opening ETH Login Page
                 if _wait_for_element_location(browser, ID, 'username') is None:
                     print("Could not open page in due time, aborting")
@@ -115,6 +115,16 @@ def surfin_the_vortex(pw):
                 browser.find_element(by=By.ID, value='username').send_keys(un)
                 browser.find_element(by=By.ID, value='password').send_keys(pw)
                 browser.find_element(by=By.ID, value='login-button').click()
+
+            elif inst == 'ETHZ':
+                # Opening ETH Login Page
+                if _wait_for_element_location(browser, ID, 'username') is None:
+                    print("Could not open page in due time, aborting")
+                    raise
+                browser.find_element(by=By.ID, value='username').send_keys(un)
+                browser.find_element(by=By.ID, value='password').send_keys(pw)
+                browser.find_element(by=By.NAME, value='_eventId_proceed').click()
+
             else:
                 print("Programming error by institution, aborting")
                 raise
