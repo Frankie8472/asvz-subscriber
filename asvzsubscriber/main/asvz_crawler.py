@@ -89,14 +89,14 @@ class ASVZCrawler:
         self._log(f'TIMEDELTA: {time_delta}')
         sleep_time_offset = 3
         if time_delta.total_seconds() > 0.0:
-            time.sleep(time_delta.total_seconds() - sleep_time_offset)
+            time.sleep(time_delta.total_seconds())
 
         # Spam Post requests
         self._log('Trying to register')
 
         ret = 422
         cnt = 0
-        while (ret != 201) and (cnt < 2 * sleep_time_offset):
+        while (ret != 201) and (cnt < sleep_time_offset):
             # noinspection PyBroadException
             try:
                 cookies = {
@@ -136,7 +136,7 @@ class ASVZCrawler:
                 self._log(f"Request failed", error=True)
                 pass
 
-            step = 0.1
+            step = 0.2
             time.sleep(step)
             cnt += step
 
