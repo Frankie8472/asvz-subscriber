@@ -138,7 +138,7 @@ def home(request):
     form_scheduled = ASVZEventForm()
     form_scheduled.set_choices(events=events_scheduled_mod)
 
-    sporttypes = [t['label'] for t in default_data['facets'][8]['terms']]
+    sporttypes = [t['label'] for t in default_data['facets'][7]['terms']]
     facilities = [f['label'] for f in default_data['facets'][1]['terms']]
     sporttypes.sort()
     facilities.sort()
