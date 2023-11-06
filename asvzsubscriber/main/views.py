@@ -286,7 +286,7 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     facility_string = ''
     i = 0
     for sporttype in sporttypes:
-        for fulltype in default_data['facets'][8]['terms']:
+        for fulltype in default_data['facets'][7]['terms']:
             if fulltype['label'] == sporttype:
                 sporttype_string = sporttype_string + f"&f[{i}]=sport:{fulltype['tid']}"
                 break
