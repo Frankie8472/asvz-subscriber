@@ -11,6 +11,12 @@
         <h6>There is no guarantee that it works.</h6>
         <h6 style="color:darkred">Don't spread information of this bot, otherwise I have to take it down eventually.</h6>
         <br>
+        <h6>This bot only works with an ASVZ login. If you don't have one because you use your ETHZ, UZH, ZHAW, etc. login, follow these steps to get your hidden ASVZ ID:</h6>
+        <h6>1. Go to https://schalter.asvz.ch.</h6>
+        <h6>2. Click on "Forgot password" at the ASVZ-ID login field (the right and blue one).</h6>
+        <h6>3. Fill only your institution email in (e g raba@student.ethz.ch).</h6>
+        <h6>==> You should now have received your ASVZ-ID by mail and can set your password. You can login to ASVZ with both logins but the bot only works with the ASVZ login.</h6>
+        <br>
         <form method="POST">
             {% csrf_token %}
             {{ form|materializecss }}
