@@ -1,14 +1,11 @@
 # Copyright by your friendly neighborhood SaunaLord
-
 import pytz
 from pathos.multiprocessing import ProcessPool
-
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.utils.safestring import mark_safe
-
 import urllib.request
 import json
 from datetime import datetime, timezone, timedelta
@@ -35,6 +32,7 @@ def enrollments(request):
         return redirect('main:home')
 
     json_obj = ASVZCrawler(user).get_enrollments()  # is already updating bearer token
+    valid_to, _ = ASVZCrawler(user).get_sauna_subscription()
     new_list = list()
 
     if json_obj is not None:
@@ -52,7 +50,7 @@ def enrollments(request):
     return render(
         request,
         'main/enrollments.html',
-        {'json_obj': new_list}
+        {'json_obj': new_list, 'valid_to': valid_to.strftime('%d.%m.%Y')}
     )
 
 
