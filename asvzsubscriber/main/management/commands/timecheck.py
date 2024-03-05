@@ -33,7 +33,7 @@ def check_time():
             break
 
     if pool_event:
-        pool = ProcessPool(nodes=8)
+        pool = ProcessPool(nodes=4)
         res = pool.amap(ASVZCrawler, pool_event)
         while not res.ready():
             time.sleep(5)

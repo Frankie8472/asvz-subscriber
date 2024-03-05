@@ -153,20 +153,21 @@ class ASVZCrawler:
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
 
         # noinspection PyBroadException
-        self.user.refresh_from_db()
         if self.user.bearer_token != '' and (self.user.valid_until - current_time).total_seconds() > 0:
             self._log(f"Bearer Token still valid for {(self.user.valid_until - current_time).total_seconds()/60:.2f} min")
             return
+
+        self.user.refresh_from_db()
         if self.user.is_updating:
             time.sleep(2)
             return self._update_bearer_token()
 
         # Update bearer token
         # Set lock and update DB
-        self._log("Updating Bearer Token")
         self.user.is_updating = True
         self.user.save()
         self.user.refresh_from_db()
+        self._log("Updating Bearer Token")
 
         # Init browser
         self._log("Dispatching Token Crawler")
@@ -215,7 +216,8 @@ class ASVZCrawler:
             browser.quit()
             self.user.is_updating = False
             self.user.save()
-            return self._update_bearer_token()
+            time.sleep(2)
+            return
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=1):
         if search_art == self.CLASS:
