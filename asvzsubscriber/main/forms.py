@@ -35,7 +35,7 @@ class ASVZUserCreationForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ["first_name", "last_name", "institution_name", "username", "password"]
+        fields = ["first_name", "last_name", "username", "password"]
         widgets = {
             'password': forms.PasswordInput(attrs={'autocomplete': 'new-password'})
         }
@@ -55,7 +55,6 @@ class ASVZUserCreationForm(forms.ModelForm):
         user.username = self.cleaned_data.get('username')
         user.first_name = self.cleaned_data.get('first_name')
         user.last_name = self.cleaned_data.get('last_name')
-        user.institution_name = self.cleaned_data.get('institution_name')
         user.accepted_rules = self.cleaned_data.get('accepted_rules')
         password = self.cleaned_data.get('password')
         user.open_password = encrypt_passphrase(password)
@@ -80,24 +79,19 @@ class ASVZUserChangeForm(forms.Form):
         widget=forms.PasswordInput(attrs={'autocomplete': 'current-password', 'autofocus': True}),
     )
 
-    new_institution_name = forms.ChoiceField(
-        label=_('Your institution'),
-        choices=[('ETHZ', 'ETHZ'), ('UZH', 'UZH'), ('ASVZ', 'ASVZ')],
-    )
-
     new_username = forms.CharField(
-        label=_('New usename - your institution login name'),
+        label=_('New usename - your ASVZ login name'),
         min_length=1,
         max_length=50,
     )
 
     new_password = forms.CharField(
-        label=_("New password - your institution password"),
+        label=_("New password - your ASVZ password"),
         widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
         strip=False,
     )
 
-    field_order = ['old_password', 'new_institution_name', 'new_username', 'new_password']
+    field_order = ['old_password', 'new_username', 'new_password']
 
     def __init__(self, user, *args, **kwargs):
         self.user: ASVZUser = user
@@ -122,7 +116,6 @@ class ASVZUserChangeForm(forms.Form):
 
     def save(self, commit=True):
         self.user.username = self.cleaned_data.get('new_username')
-        self.user.institution_name = self.cleaned_data.get('new_institution_name')
         password = self.cleaned_data.get("new_password")
         self.user.open_password = encrypt_passphrase(password)
         self.user.set_password(password)

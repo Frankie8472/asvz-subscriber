@@ -11,9 +11,9 @@ from django.utils.translation import gettext_lazy as _
 class ASVZUserManager(BaseUserManager):
     use_in_migrations = True
 
-    def _create_user(self, first_name, last_name, username, institution_name, accepted_rules, password, **extra_fields):
+    def _create_user(self, first_name, last_name, username, accepted_rules, password, **extra_fields):
         """
-        Create and save a user with the given username, institution_name, accepted_rules and password.
+        Create and save a user with the given username, accepted_rules and password.
         """
         if not first_name:
             raise ValueError("User must have a first name")
@@ -21,8 +21,6 @@ class ASVZUserManager(BaseUserManager):
             raise ValueError("User must have a last name")
         if not username:
             raise ValueError("User must have a username")
-        if not institution_name:
-            raise ValueError("User must have a institution_name")
         if not accepted_rules:
             raise ValueError("User must have accepted the rules")
 
@@ -30,7 +28,6 @@ class ASVZUserManager(BaseUserManager):
             first_name=first_name,
             last_name=last_name,
             username=username,
-            institution_name=institution_name,
             accepted_rules=accepted_rules,
             **extra_fields
         )
@@ -38,7 +35,7 @@ class ASVZUserManager(BaseUserManager):
         user_obj.save(using=self._db)
         return user_obj
 
-    def create_user(self, first_name, last_name, username, institution_name, accepted_rules, password=None, **extra_fields):
+    def create_user(self, first_name, last_name, username, accepted_rules, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         extra_fields.setdefault('account_verified', False)
@@ -52,9 +49,9 @@ class ASVZUserManager(BaseUserManager):
             raise ValueError('Superuser must not have account_verified=True.')
         if extra_fields.get('account_approved') is True:
             raise ValueError('Superuser must not have account_approved=True.')
-        return self._create_user(first_name, last_name, username, institution_name, accepted_rules, password, **extra_fields)
+        return self._create_user(first_name, last_name, username, accepted_rules, password, **extra_fields)
 
-    def create_superuser(self, first_name, last_name, username, institution_name, accepted_rules, password=None, **extra_fields):
+    def create_superuser(self, first_name, last_name, username, accepted_rules, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('account_verified', True)
@@ -69,7 +66,7 @@ class ASVZUserManager(BaseUserManager):
         if extra_fields.get('account_approved') is not True:
             raise ValueError('Superuser must have account_approved=True.')
 
-        return self._create_user(first_name, last_name, username, institution_name, accepted_rules, password, **extra_fields)
+        return self._create_user(first_name, last_name, username, accepted_rules, password, **extra_fields)
 
 
 class ASVZUser(AbstractBaseUser):
@@ -82,7 +79,7 @@ class ASVZUser(AbstractBaseUser):
         max_length=30,
     )
     username: models.CharField = models.CharField(
-        _('Username - your institution login name'),
+        _('Username - your ASVZ login name'),
         max_length=100,
         unique=True,
         primary_key=True,
@@ -91,15 +88,8 @@ class ASVZUser(AbstractBaseUser):
         },
     )
 
-    institution_name: models.Field = models.CharField(
-        _('Institution'),
-        max_length=5,
-        choices=[('ETHZ', 'ETHZ'), ('UZH', 'UZH'), ('ASVZ', 'ASVZ')],
-        default='ETHZ',
-    )
-
     password = models.CharField(
-        _('Password - Required, your institution password'),
+        _('Password - Required, your ASVZ password'),
         max_length=128
     )
 
@@ -169,7 +159,7 @@ class ASVZUser(AbstractBaseUser):
     )
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'institution_name', 'accepted_rules']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'accepted_rules']
 
     objects = ASVZUserManager()
 
@@ -185,7 +175,7 @@ class ASVZUser(AbstractBaseUser):
         return self.is_active and self.is_superuser
 
     def __str__(self):
-        return f"{self.first_name.__str__()} {self.last_name.__str__()} - {self.institution_name.__str__()} - {self.username.__str__()} - {self.valid_until.__str__()[:16]}"
+        return f"{self.first_name.__str__()} {self.last_name.__str__()} - {self.username.__str__()} - {self.valid_until.__str__()[:16]}"
 
 
 class ASVZEvent(models.Model):
