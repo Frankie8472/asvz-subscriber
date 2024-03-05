@@ -1,0 +1,12 @@
+[Unit]
+Description=ASVZSubscription Check Time.
+Requires=asvzsubscriber.service
+
+[Timer]
+Unit=asvzsubscriber.service
+OnCalendar=*-*-* *:2/5:00
+AccuracySec=10s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
