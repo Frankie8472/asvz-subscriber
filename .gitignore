@@ -8,3 +8,5 @@ key.lock
 /asvzsubscriber/main/migrations/0*.py
 .env
 /geckodriver.exe
+token.json
+credentials.json
