@@ -136,7 +136,7 @@ class ASVZCrawler:
         current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
         log_time = _unix_time_millis(current_time)
         headers = {'Authorization': f'Bearer {self._bearer_token}'}
-        return requests.get(url=f'https://schalter.asvz.ch/tn-api/api/MemberPerson', headers=headers).json()
+        return requests.get(url=f'https://schalter.asvz.ch/tn-api/api/Enrollments', headers=headers).json()
 
     def get_sauna_subscription(self):
         headers = {'Authorization': f'Bearer {self._bearer_token}'}
