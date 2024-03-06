@@ -24,8 +24,8 @@ class ASVZCrawler:
         self.bot_id = 'LOCAL'
 
         self.event_id = ""
-        self.username = ""
-        self._password = ""
+        self.username = "FILL"
+        self._password = "FILL"
         self._bearer_token = None
 
         self._update_bearer_token()
@@ -47,14 +47,12 @@ class ASVZCrawler:
         # Set lock and update DB
         self._log("Updating Bearer Token")
 
-        username = ''
-        password = ''
-
         # Init browser
         self._log("Dispatching Token Crawler")
-        firefox_options = webdriver.FirefoxOptions()
-        firefox_options.add_argument("-headless")
-        browser = webdriver.Firefox(options=firefox_options)
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("-headless")
+        chrome_service = webdriver.ChromeService()
+        browser = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
         try:
             # Opening ASVZ login page
@@ -66,8 +64,8 @@ class ASVZCrawler:
                 self._log("Could not open login page in due time, aborting", error=True)
                 raise LookupError()
 
-            browser.find_element(by=By.ID, value='AsvzId').send_keys(username)
-            browser.find_element(by=By.ID, value='Password').send_keys(password)
+            browser.find_element(by=By.ID, value='AsvzId').send_keys(self.username)
+            browser.find_element(by=By.ID, value='Password').send_keys(self._password)
             browser.find_element(by=By.XPATH, value='/html/body/div/div[6]/div[2]/div/div[2]/div/div/form/div[3]/button').click()
 
             if self._wait_for_element_location(browser, self.CLASS, 'table') is None:

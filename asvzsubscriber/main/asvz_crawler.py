@@ -171,9 +171,10 @@ class ASVZCrawler:
 
         # Init browser
         self._log("Dispatching Token Crawler")
-        firefox_options = webdriver.FirefoxOptions()
-        firefox_options.add_argument('-headless')
-        browser = webdriver.Firefox(options=firefox_options)
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('-headless')
+        chrome_service = webdriver.ChromeService(executable_path='/usr/bin/chromedriver')
+        browser = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
         try:
             # Opening ASVZ login page
