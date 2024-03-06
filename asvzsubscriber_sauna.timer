@@ -1,0 +1,11 @@
+[Unit]
+Description=ASVZSubscription Sauna Check.
+Requires=asvzsubscriber_sauna.service
+
+[Timer]
+Unit=asvzsubscriber_sauna.service
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
