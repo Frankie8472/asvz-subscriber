@@ -46,7 +46,7 @@ class ASVZCrawler:
 
         if isinstance(obj, ASVZEvent):
             self.event: ASVZEvent = obj
-            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[2])
+            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[1])
             self.request_id = self.event.url[-6:]
         else:
             self.user: ASVZUser = obj
