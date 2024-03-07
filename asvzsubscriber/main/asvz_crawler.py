@@ -51,14 +51,14 @@ class ASVZCrawler:
 
         if isinstance(obj, ASVZEvent):
             self.event: ASVZEvent = obj
-            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[1])
+            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[0])
             self.request_id = self.event.url[-6:]
         else:
             self.user: ASVZUser = obj
 
         try:
             self.token: ASVZToken = ASVZToken.objects.get(username=self.user.username)
-        except ObjectDoesNotExist:
+        except ASVZToken.DoesNotExist:
             self.token = ASVZToken.objects.create(user=self.user.username)
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
