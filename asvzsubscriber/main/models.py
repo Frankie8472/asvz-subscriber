@@ -125,27 +125,9 @@ class ASVZUser(AbstractBaseUser):
 
     date_joined: models.DateTimeField = models.DateTimeField(_('date joined'), default=timezone.now)
 
-    bearer_token: models.CharField = models.CharField(
-        _('Bearer token'),
-        max_length=4000,
-        default="",
-        help_text=_('Token for enrolling in the preferred lesson. Faster than multiple logins.'),
-    )
-
-    valid_until: models.DateTimeField = models.DateTimeField(
-        _('Valid date for bearer token'),
-        default=timezone.now,
-        help_text=_('The bearer token is only valid for 2h. This is the tracker.'),
-    )
-
     accepted_rules: models.BooleanField = models.BooleanField(
         _('Accepted rules - required, you have read and accepted the stated rules at the top of the page'),
         default=False,
-    )
-
-    is_updating: models.BooleanField = models.BooleanField(
-        default=False,
-        help_text=_('Indicates if the scheduler is updating this bearer token.'),
     )
 
     account_verified: models.BooleanField = models.BooleanField(
@@ -175,7 +157,28 @@ class ASVZUser(AbstractBaseUser):
         return self.is_active and self.is_superuser
 
     def __str__(self):
-        return f"{self.first_name.__str__()} {self.last_name.__str__()} - {self.username.__str__()} - {self.valid_until.__str__()[:16]}"
+        return f"{self.username.__str__()} - {self.first_name.__str__()} {self.last_name.__str__()} - {self.last_login.__str__()[:16]}"
+
+
+class ASVZToken(models.Model):
+    user: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="user")
+    bearer_token: models.CharField = models.CharField(
+        _('Bearer token'),
+        max_length=4000,
+        default="",
+        help_text=_('Token for enrolling in the preferred lesson. Faster than multiple logins.'),
+    )
+    valid_until: models.DateTimeField = models.DateTimeField(
+        _('Valid date for bearer token'),
+        default=timezone.now() - timezone.timedelta(hours=4),
+        help_text=_('The bearer token is only valid for 2h. This is the tracker.'),
+    )
+
+    class Meta:
+        unique_together = [['user']]
+
+    def __str__(self):
+        return f"{self.user.__str__()} - {self.valid_until.__str__()}"
 
 
 class ASVZEvent(models.Model):

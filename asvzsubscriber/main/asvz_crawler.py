@@ -5,14 +5,15 @@ import pytz
 import requests
 import time
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
+from django.utils import timezone
 from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.ui import WebDriverWait
+from django.db import transaction
 
-from .models import ASVZEvent, ASVZUser
+from .models import ASVZEvent, ASVZUser, ASVZToken
 
 
 def encrypt_passphrase(passphrase):
@@ -31,7 +32,7 @@ def _get_cryptor():
 
 
 def _unix_time_millis(dt):
-    return round((dt - datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)).total_seconds() * 1000)
+    return round((dt - timezone.datetime.utcfromtimestamp(0).replace(tzinfo=timezone.timezone.utc)).total_seconds() * 1000)
 
 
 class ASVZCrawler:
@@ -47,11 +48,16 @@ class ASVZCrawler:
         if isinstance(obj, ASVZEvent):
             self.event: ASVZEvent = obj
             self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[1])
+            self.token: ASVZToken = ASVZToken.objects.get(username=self.user.username)
             self.request_id = self.event.url[-6:]
         else:
             self.user: ASVZUser = obj
+            self.token: ASVZToken = ASVZToken.objects.get(username=self.user.username)
             self.event = None
             self.request_id = ''
+
+        if self.token is None:
+            self.token = ASVZToken.objects.create(user=self.user.username)
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
         if self.user.username == 'admin' or self.user.username == 'test':
@@ -61,15 +67,15 @@ class ASVZCrawler:
         self._update_bearer_token()
 
         if not self.user.account_verified:
-            if self.user.bearer_token == '':
+            if self.token.bearer_token == '':
                 self.user.delete()
                 return
             self.user.account_verified = True
             self.user.save()
 
-        self._bearer_token = _decrypt_passphrase(self.user.bearer_token)
+        self._bearer_token = _decrypt_passphrase(self.token.bearer_token)
 
-        if self.event is not None and self.user.bearer_token != '':
+        if self.event is not None and self.token.bearer_token != '':
             self._subscribe_to_event()
         return
 
@@ -81,10 +87,10 @@ class ASVZCrawler:
         # Wait until 5 sec before reg opening
         self._log('Wait for registration to open')
 
-        lesson_register_time_datetime = self.event.register_start_date.replace(tzinfo=timezone.utc).astimezone(
+        lesson_register_time_datetime = self.event.register_start_date.replace(tzinfo=timezone.timezone.utc).astimezone(
             tz=pytz.timezone('Europe/Zurich'))
         lesson_register_time_unix = _unix_time_millis(lesson_register_time_datetime)
-        current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+        current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
         time_delta = lesson_register_time_datetime - current_time
         self._log(f'TIMEDELTA: {time_delta}')
         sleep_time_offset = 3
@@ -132,9 +138,6 @@ class ASVZCrawler:
         if self.user.username == 'admin' or self.user.username == 'test':
             return
 
-        # Init params
-        current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
-        log_time = _unix_time_millis(current_time)
         headers = {'Authorization': f'Bearer {self._bearer_token}'}
         return requests.get(url=f'https://schalter.asvz.ch/tn-api/api/Enrollments', headers=headers).json()
 
@@ -147,26 +150,21 @@ class ASVZCrawler:
         for skill in skills:
             if skill['skillName'] == 'Wellnessabo Hönggerberg':
                 subscription_valid_to = skill['validTo']
-        return datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z'), private_email
+        return timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z'), private_email
 
+    @transaction.atomic
     def _update_bearer_token(self):
-        current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+        current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
 
         # noinspection PyBroadException
-        if self.user.bearer_token != '' and (self.user.valid_until - current_time).total_seconds() > 0:
-            self._log(f"Bearer Token still valid for {(self.user.valid_until - current_time).total_seconds()/60:.2f} min")
+        if self.token.bearer_token != '' and (self.token.valid_until - current_time).total_seconds() > 0:
+            self._log(f"Bearer Token still valid for {(self.token.valid_until - current_time).total_seconds()/60:.2f} min")
             return
-
-        self.user.refresh_from_db()
-        if self.user.is_updating:
-            time.sleep(2)
-            return self._update_bearer_token()
 
         # Update bearer token
         # Set lock and update DB
-        self.user.is_updating = True
-        self.user.save()
-        self.user.refresh_from_db()
+        locked_token = ASVZToken.objects.select_for_update().get(user=self.token.user)
+
         self._log("Updating Bearer Token")
 
         # Init browser
@@ -179,8 +177,7 @@ class ASVZCrawler:
         try:
             # Opening ASVZ login page
             self._log("Opening ASVZ Login Page")
-            url_asvz_login = 'https://schalter.asvz.ch'
-            browser.get(url_asvz_login)
+            browser.get('https://schalter.asvz.ch')
 
             if self._wait_for_element_location(browser, self.ID, 'AsvzId') is None:
                 self._log("Could not open login page in due time, aborting", error=True)
@@ -210,14 +207,15 @@ class ASVZCrawler:
                 raise LookupError
 
             self._log("Encrypting and saving bearer token")
-            self.user.valid_until = current_time + timedelta(hours=2)
-            self.user.bearer_token = encrypt_passphrase(bearer_token)
+            locked_token.update(
+                bearer_token=encrypt_passphrase(bearer_token),
+                valid_until=current_time + timezone.timedelta(hours=2)
+            )
+
+            self.token = locked_token
 
         finally:
             browser.quit()
-            self.user.is_updating = False
-            self.user.save()
-            time.sleep(2)
             return
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=1):
@@ -241,5 +239,5 @@ class ASVZCrawler:
                 return
 
     def _log(self, log_msg='', error=False):
-        print(f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.bot_id} ==> {'!!' if error else ''} {log_msg}", flush=True)
+        print(f">> {timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.bot_id} ==> {'!!' if error else ''} {log_msg}", flush=True)
         return
