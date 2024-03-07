@@ -5,6 +5,8 @@ import pytz
 import requests
 import time
 from pathlib import Path
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from cryptography.fernet import Fernet
 from selenium import webdriver
@@ -56,7 +58,7 @@ class ASVZCrawler:
 
         try:
             self.token: ASVZToken = ASVZToken.objects.get(username=self.user.username)
-        except ASVZToken.DoesNotExist:
+        except ObjectDoesNotExist:
             self.token = ASVZToken.objects.create(user=self.user.username)
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
