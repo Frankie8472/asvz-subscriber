@@ -161,7 +161,7 @@ class ASVZUser(AbstractBaseUser):
 
 
 class ASVZToken(models.Model):
-    user: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="user")
+    user: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="token")
     bearer_token: models.CharField = models.CharField(
         _('Bearer token'),
         max_length=4000,
@@ -182,7 +182,7 @@ class ASVZToken(models.Model):
 
 
 class ASVZEvent(models.Model):
-    user: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="user")
+    user: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="events")
     url: models.URLField = models.URLField()
     sport_name: models.CharField = models.CharField(max_length=100)
     title: models.CharField = models.CharField(max_length=100)
