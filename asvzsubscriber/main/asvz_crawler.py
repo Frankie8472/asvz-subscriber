@@ -153,68 +153,70 @@ class ASVZCrawler:
     def _update_bearer_token(self):
         current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
 
-        # noinspection PyBroadException
-        if self.token.bearer_token != '' and (self.token.valid_until - current_time).total_seconds() > 0:
-            self._log(f"Bearer Token still valid for {(self.token.valid_until - current_time).total_seconds()/60:.2f} min")
-            return
-
-        # Update bearer token
-        # Set lock and update DB
+        # Set lock and update Bearer token
         locked_token = ASVZToken.objects.select_for_update().get(user=self.token.user)
 
-        self._log("Updating Bearer Token")
+        with transaction.atomic():
+            # noinspection PyBroadException
+            if self.token.bearer_token != '' and (self.token.valid_until - current_time).total_seconds() > 0:
+                self._log(f"Bearer Token still valid for {(self.token.valid_until - current_time).total_seconds()/60:.2f} min")
+                return
 
-        # Init browser
-        self._log("Dispatching Token Crawler")
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('-headless')
-        chrome_service = webdriver.ChromeService(executable_path='/usr/bin/chromedriver')
-        browser = webdriver.Chrome(service=chrome_service, options=chrome_options)
+            self._log("Commencing Bearer Token Update")
 
-        try:
-            # Opening ASVZ login page
-            self._log("Opening ASVZ Login Page")
-            browser.get('https://schalter.asvz.ch')
+            # Init browser
+            self._log("Dispatching Token Crawler")
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument('-headless')
+            chrome_service = webdriver.ChromeService(executable_path='/usr/bin/chromedriver')
+            browser = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
-            if self._wait_for_element_location(browser, self.ID, 'AsvzId') is None:
-                self._log("Could not open login page in due time, aborting", error=True)
-                raise LookupError
+            try:
+                # Opening ASVZ login page
+                self._log("Opening ASVZ Login Page")
+                browser.get('https://schalter.asvz.ch')
 
-            browser.find_element(by=By.ID, value='AsvzId').send_keys(self.user.username)
-            browser.find_element(by=By.ID, value='Password').send_keys(self._password)
-            time.sleep(1)
-            browser.find_element(by=By.XPATH, value=".//html//body//*//form//div[3]//button").click()
+                if self._wait_for_element_location(browser, self.ID, 'AsvzId') is None:
+                    self._log("Could not open login page in due time, aborting", error=True)
+                    raise LookupError
 
-            if self._wait_for_element_location(browser, self.CLASS, 'table') is None:
-                self._log("Could not open main page in due time, aborting", error=True)
-                raise LookupError
+                browser.find_element(by=By.ID, value='AsvzId').send_keys(self.user.username)
+                browser.find_element(by=By.ID, value='Password').send_keys(self._password)
+                time.sleep(1)
+                browser.find_element(by=By.XPATH, value=".//html//body//*//form//div[3]//button").click()
 
-            self._log("Last page reached, fetching bearer token")
+                if self._wait_for_element_location(browser, self.CLASS, 'table') is None:
+                    self._log("Could not open main page in due time, aborting", error=True)
+                    raise LookupError
 
-            # Get bearer token
-            bearer_token = None
+                self._log("Last page reached, fetching bearer token")
 
-            for key, value in browser.execute_script("return localStorage").items():
-                if key.startswith("oidc.user"):
-                    local_storage_json = json.loads(value)
-                    bearer_token = local_storage_json['access_token']
-                    break
+                # Get bearer token
+                bearer_token = None
 
-            if bearer_token is None:
-                self._log("Bearer token not found in json", error=True)
-                raise LookupError
+                for key, value in browser.execute_script("return localStorage").items():
+                    if key.startswith("oidc.user"):
+                        local_storage_json = json.loads(value)
+                        bearer_token = local_storage_json['access_token']
+                        break
 
-            self._log("Encrypting and saving bearer token")
-            locked_token.update(
-                bearer_token=encrypt_passphrase(bearer_token),
-                valid_until=current_time + timezone.timedelta(hours=2)
-            )
+                if bearer_token is None:
+                    self._log("Bearer token not found in json", error=True)
+                    raise LookupError
 
-            self.token = locked_token
-
-        finally:
-            browser.quit()
-            return
+                self._log("Encrypting and saving bearer token")
+                print(f"locked_token:{locked_token}:", flush=True)
+                locked_token.update(
+                    bearer_token=encrypt_passphrase(bearer_token),
+                    valid_until=current_time + timezone.timedelta(hours=2)
+                )
+                print(f"reached", flush=True)
+                print(f"locked_token:{locked_token}:", flush=True)
+                print(f"bt:{ASVZToken.objects.get(user=self.user)}:", flush=True)
+            finally:
+                print("reached_end", flush=True)
+                browser.quit()
+                return
 
     def _wait_for_element_location(self, browser, search_art="", search_name="", delay=10, interval=1):
         if search_art == self.CLASS:
