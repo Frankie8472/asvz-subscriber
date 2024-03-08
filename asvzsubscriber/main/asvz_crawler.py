@@ -174,7 +174,9 @@ class ASVZCrawler:
             # Init browser
             self._log("Dispatching Token Crawler")
             chrome_options = webdriver.ChromeOptions()
-            chrome_options.add_argument('-headless')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--disable_gpu')
             chrome_service = webdriver.ChromeService(executable_path='/usr/bin/chromedriver')
             browser = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
