@@ -147,7 +147,13 @@ class ASVZCrawler:
         for skill in skills:
             if skill['skillName'] == 'Wellnessabo Hönggerberg':
                 subscription_valid_to = skill['validTo']
-        return timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z'), private_email
+
+        if subscription_valid_to is None:
+            subscription_valid_to = ''
+        else:
+            timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z')
+
+        return subscription_valid_to, private_email
 
     def _update_bearer_token(self):
         current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))

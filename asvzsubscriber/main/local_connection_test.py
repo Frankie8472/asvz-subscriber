@@ -4,7 +4,7 @@ import urllib
 import pytz
 import requests
 import time
-from datetime import datetime, timezone
+from django.utils import timezone
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 def _unix_time_millis(dt):
-    return round((dt - datetime.utcfromtimestamp(0).replace(tzinfo=timezone.utc)).total_seconds() * 1000)
+    return round((dt - timezone.datetime.utcfromtimestamp(0).replace(tzinfo=timezone.timezone.utc)).total_seconds() * 1000)
 
 
 class ASVZCrawler:
@@ -35,7 +35,7 @@ class ASVZCrawler:
 
     def get_enrollments(self):
         # Init params
-        current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+        current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
         log_time = _unix_time_millis(current_time)
 
         headers = {'Authorization': f'Bearer {self._bearer_token}'}
@@ -99,7 +99,7 @@ class ASVZCrawler:
 
     def subscribe_to_event(self):
         request_id = ''
-        lesson_register_time_unix = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+        lesson_register_time_unix = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
         sleep_time_offset = 3
         ret = 422
         cnt = 0
@@ -168,11 +168,17 @@ class ASVZCrawler:
         for skill in skills:
             if skill['skillName'] == 'Wellnessabo Hönggerberg':
                 subscription_valid_to = skill['validTo']
+
+        if subscription_valid_to is None:
+            subscription_valid_to = ''
+        else:
+            timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z')
+
         return subscription_valid_to, private_email
 
     def _log(self, log_msg='', error=False):
         print(
-            f">> {datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.bot_id} ==> {'!!' if error else ''} {log_msg}",
+            f">> {timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')).__str__()[11:19]} >> {self.bot_id} ==> {'!!' if error else ''} {log_msg}",
             flush=True)
 
 
