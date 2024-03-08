@@ -54,7 +54,7 @@ class ASVZCrawler:
         else:
             self.user: ASVZUser = obj
 
-        self.token: ASVZToken = ASVZToken.objects.get_or_create(user=self.user)
+        self.token: ASVZToken = ASVZToken.objects.get_or_create(user=self.user)[0]
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
         if self.user.username == 'admin' or self.user.username == 'test':
@@ -113,7 +113,7 @@ class ASVZCrawler:
 
                 self._log(f"Status Code: {ret}")
 
-            except LookupError:
+            except:
                 self._log(f"Request failed", error=True)
                 pass
 
@@ -182,7 +182,8 @@ class ASVZCrawler:
 
             browser.find_element(by=By.ID, value='AsvzId').send_keys(self.user.username)
             browser.find_element(by=By.ID, value='Password').send_keys(self._password)
-            browser.find_element(by=By.XPATH, value='/html/body/div/div[6]/div[2]/div/div[2]/div/div/form/div[3]/button').click()
+            time.sleep(1)
+            browser.find_element(by=By.XPATH, value=".//html//body//*//form//div[3]//button").click()
 
             if self._wait_for_element_location(browser, self.CLASS, 'table') is None:
                 self._log("Could not open main page in due time, aborting", error=True)
@@ -231,7 +232,7 @@ class ASVZCrawler:
             try:
                 element = (WebDriverWait(browser, delay, interval).until(presence_of_element_located((search_option, search_name))))
                 return element
-            except LookupError:
+            except:
                 self._log("Loading took too much time", error=True)
                 return
 

@@ -62,15 +62,16 @@ class ASVZCrawler:
 
             if self._wait_for_element_location(browser, self.ID, 'AsvzId') is None:
                 self._log("Could not open login page in due time, aborting", error=True)
-                raise LookupError()
+                raise LookupError
 
             browser.find_element(by=By.ID, value='AsvzId').send_keys(self.username)
             browser.find_element(by=By.ID, value='Password').send_keys(self._password)
-            browser.find_element(by=By.XPATH, value='/html/body/div/div[6]/div[2]/div/div[2]/div/div/form/div[3]/button').click()
+            time.sleep(1)
+            browser.find_element(by=By.XPATH, value=".//html//body//*//form//div[3]//button").click()
 
             if self._wait_for_element_location(browser, self.CLASS, 'table') is None:
                 self._log("Could not open main page in due time, aborting", error=True)
-                raise LookupError()
+                raise LookupError
 
             self._log("Last page reached, fetching bearer token")
 
@@ -114,7 +115,7 @@ class ASVZCrawler:
 
                 self._log(f"Status Code: {ret}")
 
-            except LookupError:
+            except:
                 self._log(f"Request failed", error=True)
                 pass
 
@@ -147,7 +148,7 @@ class ASVZCrawler:
                 element = WebDriverWait(browser, delay, interval).until(
                     ec.presence_of_element_located((search_option, search_name)))
                 return element
-            except LookupError:
+            except:
                 cnt += 1
                 self._log("Loading took too much time! Trying again...", error=True)
                 time.sleep(2)
