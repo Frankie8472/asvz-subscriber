@@ -29,7 +29,7 @@ class Command(BaseCommand):
 def check_subscription():
     print(f"========= Chron Job - Sauna Subscription =========", flush=True)
     current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
-    user_list = ASVZUser.objects
+    user_list = ASVZUser.objects.order_by('username')
 
     for user in user_list:
         valid_to, email = ASVZCrawler(user).get_sauna_subscription()
