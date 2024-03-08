@@ -122,7 +122,7 @@ class ASVZUserChangeForm(forms.Form):
         self.user.set_password(password)
         self.user.account_verified = False
 
-        token = ASVZToken.objects.get_or_create(username=self.user.username)
+        token = ASVZToken.objects.get_or_create(user=self.user)
         token.bearer_token = ""
         token.valid_until = timezone.now() - timezone.timedelta(hours=4)
 

@@ -106,7 +106,7 @@ def home(request):
                     for event in data['results']:
                         if selected_event == event['url']:
                             ASVZEvent.objects.create(
-                                username=user.username,
+                                user=user,
                                 sport_name=event['sport_name'],
                                 title=event['title'],
                                 location=event['location'],
@@ -124,7 +124,7 @@ def home(request):
                 for selected_event in form_scheduled.cleaned_data.get('Events'):
                     for event in events_scheduled:
                         if selected_event == event.url:
-                            record = ASVZEvent.objects.get(url=event.url, username=user.username)
+                            record = ASVZEvent.objects.get(url=event.url, user=user)
                             record.delete()
                             break
 
@@ -258,8 +258,8 @@ def account(request):
 
 
 def load_events(data, user):
-    events_scheduled = [event for event in ASVZEvent.objects.order_by('register_start_date').filter(username=user.username)]
-    events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(username=user.username)]
+    events_scheduled = [event for event in ASVZEvent.objects.order_by('register_start_date').filter(user=user)]
+    events_scheduled_url = [event.url for event in ASVZEvent.objects.filter(user=user)]
 
     events = [(
         event['url'],

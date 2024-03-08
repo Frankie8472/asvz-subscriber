@@ -49,12 +49,12 @@ class ASVZCrawler:
 
         if isinstance(obj, ASVZEvent):
             self.event: ASVZEvent = obj
-            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.username)
+            self.user: ASVZUser = ASVZUser.objects.get(user=self.event.user)
             self.request_id = self.event.url[-6:]
         else:
             self.user: ASVZUser = obj
 
-        self.token: ASVZToken = ASVZToken.objects.get_or_create(username=self.user.username)
+        self.token: ASVZToken = ASVZToken.objects.get_or_create(user=self.user)
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
         if self.user.username == 'admin' or self.user.username == 'test':
@@ -160,7 +160,7 @@ class ASVZCrawler:
 
         # Update bearer token
         # Set lock and update DB
-        locked_token = ASVZToken.objects.select_for_update().get(username=self.token.username)
+        locked_token = ASVZToken.objects.select_for_update().get(user=self.token.user)
 
         self._log("Updating Bearer Token")
 

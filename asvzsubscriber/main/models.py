@@ -161,7 +161,7 @@ class ASVZUser(AbstractBaseUser):
 
 
 class ASVZToken(models.Model):
-    username: models.CharField = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="token")
+    user: models.CharField = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="token")
     bearer_token: models.CharField = models.CharField(
         _('Bearer token'),
         max_length=4000,
@@ -175,11 +175,11 @@ class ASVZToken(models.Model):
     )
 
     def __str__(self):
-        return f"{self.username.__str__()} - {self.valid_until.__str__()}"
+        return f"{self.user.username} - {self.valid_until.__str__()}"
 
 
 class ASVZEvent(models.Model):
-    username: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="events")
+    user: models.CharField = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="events")
     url: models.URLField = models.URLField()
     sport_name: models.CharField = models.CharField(max_length=100)
     title: models.CharField = models.CharField(max_length=100)
@@ -189,7 +189,7 @@ class ASVZEvent(models.Model):
     niveau_short_name: models.CharField = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = [["username", "url"]]
+        unique_together = [["user", "url"]]
 
     def __str__(self):
-        return f"{self.username.__str__()} - {self.url[-6:]} - {self.event_start_date.strftime('%d.%m.%Y %H:%M:%S')}"
+        return f"{self.user.username} - {self.url[-6:]} - {self.event_start_date.strftime('%d.%m.%Y %H:%M:%S')}"
