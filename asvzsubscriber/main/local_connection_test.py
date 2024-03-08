@@ -51,7 +51,7 @@ class ASVZCrawler:
         self._log("Dispatching Token Crawler")
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("-headless")
-        chrome_service = webdriver.ChromeService()
+        chrome_service = webdriver.ChromeService(executable_path='/usr/bin/chromedriver')
         browser = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
         try:
