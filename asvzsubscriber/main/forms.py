@@ -1,5 +1,6 @@
 # Copyright by your friendly neighborhood SaunaLord
 
+import pytz
 from random import random
 from django import forms
 from django.utils import timezone
@@ -124,7 +125,7 @@ class ASVZUserChangeForm(forms.Form):
 
         token = ASVZToken.objects.get_or_create(user=self.user)
         token.bearer_token = ""
-        token.valid_until = timezone.now() - timezone.timedelta(hours=4)
+        token.valid_until = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')) - timezone.timedelta(hours=4)
 
         if commit:
             self.user.save()

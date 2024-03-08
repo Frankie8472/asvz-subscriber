@@ -1,5 +1,6 @@
 # Copyright by your friendly neighborhood SaunaLord
 
+import pytz
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.conf import settings
 from django.db import models
@@ -123,7 +124,7 @@ class ASVZUser(AbstractBaseUser):
         ),
     )
 
-    date_joined: models.DateTimeField = models.DateTimeField(_('date joined'), default=timezone.now)
+    date_joined: models.DateTimeField = models.DateTimeField(_('date joined'), default=timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')))
 
     accepted_rules: models.BooleanField = models.BooleanField(
         _('Accepted rules - required, you have read and accepted the stated rules at the top of the page'),
@@ -170,7 +171,7 @@ class ASVZToken(models.Model):
     )
     valid_until: models.DateTimeField = models.DateTimeField(
         _('Valid date for bearer token'),
-        default=timezone.now() - timezone.timedelta(hours=4),
+        default=timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')) - timezone.timedelta(hours=4),
         help_text=_('The bearer token is only valid for 2h. This is the tracker.'),
     )
 

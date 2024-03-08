@@ -33,6 +33,12 @@ def enrollments(request):
 
     json_obj = ASVZCrawler(user).get_enrollments()  # is already updating bearer token
     valid_to, _ = ASVZCrawler(user).get_sauna_subscription()
+
+    if valid_to > timezone.now:
+        valid_to = valid_to.strftime('%d.%m.%Y')
+    else:
+        valid_to = '--- No active sauna subscription ---'
+
     new_list = list()
 
     if json_obj is not None:
@@ -50,7 +56,7 @@ def enrollments(request):
     return render(
         request,
         'main/enrollments.html',
-        {'json_obj': new_list, 'valid_to': valid_to.strftime('%d.%m.%Y')}
+        {'json_obj': new_list, 'valid_to': valid_to}
     )
 
 

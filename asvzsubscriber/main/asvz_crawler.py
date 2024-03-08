@@ -149,9 +149,9 @@ class ASVZCrawler:
                 subscription_valid_to = skill['validTo']
 
         if subscription_valid_to is None:
-            subscription_valid_to = ''
+            subscription_valid_to = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')) - timezone.timedelta(days=2)
         else:
-            timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z')
+            subscription_valid_to = timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z')
 
         return subscription_valid_to, private_email
 

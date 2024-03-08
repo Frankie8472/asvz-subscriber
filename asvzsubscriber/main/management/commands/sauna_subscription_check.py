@@ -33,7 +33,7 @@ def check_subscription():
 
     for user in user_list:
         valid_to, email = ASVZCrawler(user).get_sauna_subscription()
-        if valid_to != '' and timezone.timedelta(days=0) < valid_to - current_time < timezone.timedelta(days=3):
+        if timezone.timedelta(days=0) < valid_to - current_time < timezone.timedelta(days=3):
             send_mail(valid_to, email)
 
     print(f"========= Finished - Sauna Subscription =========", flush=True)
