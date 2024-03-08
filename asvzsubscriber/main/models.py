@@ -157,7 +157,7 @@ class ASVZUser(AbstractBaseUser):
         return self.is_active and self.is_superuser
 
     def __str__(self):
-        return f"{self.username.__str__()} - {self.first_name.__str__()} {self.last_name.__str__()} - {self.last_login.__str__()[:16]}"
+        return f"{self.username.__str__()} - {self.first_name.__str__()} {self.last_name.__str__()} - {self.last_login.strftime('%d.%m.%Y %H:%M:%S')}"
 
 
 class ASVZToken(models.Model):
@@ -175,7 +175,7 @@ class ASVZToken(models.Model):
     )
 
     def __str__(self):
-        return f"{self.user.username} - {self.valid_until.__str__()}"
+        return f"{self.user.username.__str__()} - {self.valid_until.strftime('%d.%m.%Y %H:%M:%S')}"
 
 
 class ASVZEvent(models.Model):
@@ -192,4 +192,4 @@ class ASVZEvent(models.Model):
         unique_together = [["user", "url"]]
 
     def __str__(self):
-        return f"{self.user.username} - {self.url[-6:]} - {self.event_start_date.strftime('%d.%m.%Y %H:%M:%S')}"
+        return f"{self.user.username.__str__()} - {self.url[-6:]} - {self.event_start_date.strftime('%d.%m.%Y %H:%M:%S')}"

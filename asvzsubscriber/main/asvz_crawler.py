@@ -6,12 +6,12 @@ import requests
 import time
 from pathlib import Path
 from django.utils import timezone
+from filelock import FileLock
 from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.ui import WebDriverWait
-from django.db import transaction
 
 from .models import ASVZEvent, ASVZUser, ASVZToken
 
@@ -149,14 +149,21 @@ class ASVZCrawler:
                 subscription_valid_to = skill['validTo']
         return timezone.datetime.strptime(subscription_valid_to, '%Y-%m-%dT%H:%M:%S%z'), private_email
 
-    @transaction.atomic
     def _update_bearer_token(self):
         current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
 
         # Set lock and update Bearer token
-        locked_token = ASVZToken.objects.select_for_update().get(user=self.token.user)
+        self._log(f"Request lock for user {self.user.username}")
+        root_path = Path(__file__).resolve().parent.parent.parent
+        file_lock_path = os.path.join(root_path, f'locks/{self.user.username}.lock')
+        lock = FileLock(file_lock_path)
 
-        with transaction.atomic():
+        with lock:
+            self._log("Lock acquired")
+
+            # Refresh db entry
+            self.token.refresh_from_db()
+
             # noinspection PyBroadException
             if self.token.bearer_token != '' and (self.token.valid_until - current_time).total_seconds() > 0:
                 self._log(f"Bearer Token still valid for {(self.token.valid_until - current_time).total_seconds()/60:.2f} min")
@@ -205,16 +212,10 @@ class ASVZCrawler:
                     raise LookupError
 
                 self._log("Encrypting and saving bearer token")
-                print(f"locked_token:{locked_token}:", flush=True)
-                locked_token.update(
-                    bearer_token=encrypt_passphrase(bearer_token),
-                    valid_until=current_time + timezone.timedelta(hours=2)
-                )
-                print(f"reached", flush=True)
-                print(f"locked_token:{locked_token}:", flush=True)
-                print(f"bt:{ASVZToken.objects.get(user=self.user)}:", flush=True)
+                self.token.bearer_token = encrypt_passphrase(bearer_token)
+                self.token.valid_until = current_time + timezone.timedelta(hours=2)
+                self.token.save()
             finally:
-                print("reached_end", flush=True)
                 browser.quit()
                 return
 
