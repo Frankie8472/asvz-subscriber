@@ -10,3 +10,4 @@ key.lock
 /geckodriver.exe
 token.json
 credentials.json
+locks
