@@ -2,12 +2,13 @@
 
 from random import random
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model, password_validation
 from django.core.exceptions import ValidationError
 
 from .asvz_crawler import encrypt_passphrase
-from .models import ASVZUser
+from .models import ASVZUser, ASVZToken
 
 
 class ASVZEventForm(forms.Form):
@@ -120,8 +121,12 @@ class ASVZUserChangeForm(forms.Form):
         self.user.open_password = encrypt_passphrase(password)
         self.user.set_password(password)
         self.user.account_verified = False
-        self.user.bearer_token = ""
+
+        token = ASVZToken.objects.get_or_create(username=self.user.username)
+        token.bearer_token = ""
+        token.valid_until = timezone.now() - timezone.timedelta(hours=4)
 
         if commit:
             self.user.save()
+            token.save()
         return self.user
