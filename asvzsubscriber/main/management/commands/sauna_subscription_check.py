@@ -3,7 +3,7 @@ import base64
 import pytz
 import os
 from pathlib import Path
-from datetime import datetime, timedelta
+from django.utils import timezone
 from django.core.management import BaseCommand
 from email.mime.text import MIMEText
 from google.oauth2.credentials import Credentials
@@ -28,12 +28,12 @@ class Command(BaseCommand):
 
 def check_subscription():
     print(f"========= Chron Job - Sauna Subscription =========", flush=True)
-    current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+    current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
     user_list = ASVZUser.objects.order_by('username')
 
     for user in user_list:
         valid_to, email = ASVZCrawler(user).get_sauna_subscription()
-        if valid_to is not None and timedelta(days=0) < valid_to - current_time < timedelta(days=3):
+        if valid_to != '' and timezone.timedelta(days=0) < valid_to - current_time < timezone.timedelta(days=3):
             send_mail(valid_to, email)
 
     print(f"========= Finished - Sauna Subscription =========", flush=True)
