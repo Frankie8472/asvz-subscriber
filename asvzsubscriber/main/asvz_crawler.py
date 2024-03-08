@@ -5,8 +5,6 @@ import pytz
 import requests
 import time
 from pathlib import Path
-
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from cryptography.fernet import Fernet
 from selenium import webdriver
@@ -51,15 +49,12 @@ class ASVZCrawler:
 
         if isinstance(obj, ASVZEvent):
             self.event: ASVZEvent = obj
-            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.user.__str__().split(' - ')[0])
+            self.user: ASVZUser = ASVZUser.objects.get(username=self.event.username)
             self.request_id = self.event.url[-6:]
         else:
             self.user: ASVZUser = obj
 
-        try:
-            self.token: ASVZToken = ASVZToken.objects.get(username=self.user.username)
-        except ASVZToken.DoesNotExist:
-            self.token = ASVZToken.objects.create(user=self.user.username)
+        self.token: ASVZToken = ASVZToken.objects.get_or_create(username=self.user.username)
 
         self.bot_id = f"{self.user.username}:{self.request_id}"
         if self.user.username == 'admin' or self.user.username == 'test':
@@ -165,7 +160,7 @@ class ASVZCrawler:
 
         # Update bearer token
         # Set lock and update DB
-        locked_token = ASVZToken.objects.select_for_update().get(user=self.token.user)
+        locked_token = ASVZToken.objects.select_for_update().get(username=self.token.username)
 
         self._log("Updating Bearer Token")
 
