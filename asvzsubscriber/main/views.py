@@ -1,14 +1,14 @@
 # Copyright by your friendly neighborhood SaunaLord
 import pytz
+import urllib.request
+import json
 from pathos.multiprocessing import ProcessPool
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.utils.safestring import mark_safe
-import urllib.request
-import json
-from datetime import datetime, timezone, timedelta
+from django.utils import timezone
 
 from .asvz_crawler import ASVZCrawler
 from .forms import ASVZEventForm, ASVZUserCreationForm, ASVZUserChangeForm
@@ -34,7 +34,7 @@ def enrollments(request):
     json_obj = ASVZCrawler(user).get_enrollments()  # is already updating bearer token
     valid_to, _ = ASVZCrawler(user).get_sauna_subscription()
 
-    if valid_to > timezone.now:
+    if valid_to > timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')):
         valid_to = valid_to.strftime('%d.%m.%Y')
     else:
         valid_to = '--- No active sauna subscription ---'
@@ -72,7 +72,7 @@ def home(request):
 
     selected_sporttypes = []
     selected_facilities = []
-    tomorrow = datetime.now(tz=pytz.timezone('Europe/Zurich')) + timedelta(days=1)
+    tomorrow = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich')) + timezone.timedelta(days=1)
     selected_date = tomorrow.strftime('%Y-%m-%d')
     selected_time = tomorrow.strftime('%H:%M')
     selected_limit = '15'
@@ -270,13 +270,13 @@ def load_events(data, user):
     events = [(
         event['url'],
         mark_safe(
-            f"<span>{datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']} | {event['niveau_short_name']} | {event['title']} | {event['location']}</span>")
+            f"<span>{timezone.datetime.strptime(event['from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event['sport_name']} | {event['niveau_short_name']} | {event['title']} | {event['location']}</span>")
     ) for event in data['results'] if event['url'] not in events_scheduled_url]
 
     events_scheduled_mod = [(
         event.url,
         mark_safe(
-            f"<span>{event.event_start_date.replace(tzinfo=timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name} | {event.niveau_short_name} | {event.title} | {event.location}</span>")
+            f"<span>{event.event_start_date.replace(tzinfo=timezone.timezone.utc).astimezone(tz=pytz.timezone('Europe/Zurich')).strftime('%d.%m %H:%M')} | {event.sport_name} | {event.niveau_short_name} | {event.title} | {event.location}</span>")
     ) for event in events_scheduled]
     return events, events_scheduled, events_scheduled_mod
 
@@ -317,11 +317,11 @@ def update_url(show_results=15, sporttypes=None, facilities=None, date=None, tim
     # Remove already open events
     events_to_be_removed = []
     for event in data['results']:
-        current_time = datetime.now(pytz.timezone('Europe/Zurich'))
+        current_time = timezone.datetime.now(pytz.timezone('Europe/Zurich'))
         registration_start = current_time
         if 'oe_from_date' in event:
-            registration_start = datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
-                tzinfo=timezone.utc).astimezone(tz=current_time.tzinfo)
+            registration_start = timezone.datetime.strptime(event['oe_from_date'], '%Y-%m-%dT%H:%M:%SZ').replace(
+                tzinfo=timezone.timezone.utc).astimezone(tz=current_time.tzinfo)
         time_delta = (registration_start - current_time).total_seconds()
         if time_delta < 0.0:
             events_to_be_removed.append(event)

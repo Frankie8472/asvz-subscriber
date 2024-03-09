@@ -2,8 +2,8 @@
 import base64
 import pytz
 import os
+from django.utils import timezone
 from pathlib import Path
-from datetime import datetime
 from email.mime.text import MIMEText
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -66,7 +66,7 @@ def send_message(service, sender, message):
 
 
 def main():
-    current_time = datetime.now(tz=pytz.timezone('Europe/Zurich'))
+    current_time = timezone.datetime.now(tz=pytz.timezone('Europe/Zurich'))
     email = ''
 
     send_mail(current_time, email)
