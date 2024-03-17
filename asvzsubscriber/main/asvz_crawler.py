@@ -176,6 +176,7 @@ class ASVZCrawler:
                 return
 
             self._log("Commencing Bearer Token Update")
+            self.token.bearer_token = ''
 
             # Init browser
             self._log("Dispatching Token Crawler")
@@ -222,8 +223,8 @@ class ASVZCrawler:
                 self._log("Encrypting and saving bearer token")
                 self.token.bearer_token = encrypt_passphrase(bearer_token)
                 self.token.valid_until = current_time + timezone.timedelta(hours=2)
-                self.token.save()
             finally:
+                self.token.save()
                 browser.quit()
                 return
 
